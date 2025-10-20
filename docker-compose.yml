@@ -1,0 +1,111 @@
+services:
+  nginx:
+    image: nginx:alpine
+    ports:
+      - "80:80"     # HTTP→HTTPS リダイレクト
+      - "443:443"   # HTTPS
+    volumes:
+      - ./docker/nginx/nginx.conf:/etc/nginx/conf.d/default.conf
+      - ./docker/nginx/ssl:/etc/nginx/ssl
+    depends_on:
+      - web
+      - hydra
+
+  web:
+    build:
+      context: .
+      dockerfile: Dockerfile
+    ports:
+      - "3000:3000"
+      - "3036:3036"
+    volumes:
+      - .:/app
+      - rails_bundle:/usr/local/bundle
+      - node_modules:/app/node_modules
+    depends_on:
+      db:
+        condition: service_healthy
+      valkey:
+        condition: service_healthy
+      hydra:
+        condition: service_healthy
+    command: bash -c "
+      rm -f tmp/pids/server.pid &&
+      bundle check || bundle install &&
+      bundle exec rails db:prepare &&
+      bundle exec foreman start -f Procfile.dev"
+
+  db:
+    image: mysql:8.0
+    platform: linux/x86_64
+    environment:
+      MYSQL_ROOT_PASSWORD: ${MYSQL_ROOT_PASSWORD}
+      TZ: ${TZ}
+    ports:
+      - "3306:3306"
+    volumes:
+      - mysql_data:/var/lib/mysql
+      - ./docker/mysql:/etc/mysql/conf.d
+      - ./docker/mysql/init:/docker-entrypoint-initdb.d
+    command: --character-set-server=utf8mb4 --collation-server=utf8mb4_unicode_ci --default-authentication-plugin=mysql_native_password
+    healthcheck:
+      test: ["CMD", "mysqladmin", "ping", "-h", "localhost", "-u", "rails", "-prails_password"]
+      timeout: 5s
+      retries: 5
+      interval: 2s
+      start_period: 10s
+
+  valkey:
+    image: valkey/valkey:8.0
+    ports:
+      - "6379:6379"
+    volumes:
+      - valkey_data:/data
+    command: >
+      valkey-server
+      --requirepass valkey_password
+      --appendonly yes
+      --save ""
+      --stop-writes-on-bgsave-error no
+      --rdbcompression no
+      --databases 4
+      --tcp-keepalive 0
+      --timeout 0
+    healthcheck:
+      test: ["CMD", "valkey-cli", "-a", "valkey_password", "ping"]
+      timeout: 2s
+      retries: 3
+      interval: 1s
+      start_period: 3s
+
+  # ORY Hydra (Migration + Serve統合版)
+  hydra:
+    image: oryd/hydra:v2.3.0
+    environment:
+      - DSN=${HYDRA_DSN}
+    ports:
+      - "4444:4444" # Public API
+      # Admin API (4445) は内部通信のみ - 外部公開禁止
+    volumes:
+      - ./docker/hydra:/etc/config
+    entrypoint: >
+      sh -c "
+        echo 'Hydra v2.3.0: Checking and running migrations...' &&
+        hydra migrate sql up -c /etc/config/hydra.yml -e --yes &&
+        echo 'Hydra v2.3.0: Starting server...' &&
+        hydra serve -c /etc/config/hydra.yml all --dev
+      "
+    depends_on:
+      db:
+        condition: service_healthy
+    healthcheck:
+      test: ["CMD", "wget", "--no-verbose", "--tries=1", "--spider", "http://localhost:4444/health/ready"]
+      timeout: 5s
+      retries: 5
+      start_period: 30s
+
+volumes:
+  rails_bundle:
+  node_modules:
+  mysql_data:
+  valkey_data:

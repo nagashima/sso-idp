@@ -1,0 +1,65 @@
+<div class="container mx-auto px-4 py-8">
+  <div class="max-w-md mx-auto bg-white rounded-lg shadow-md p-6">
+    <h1 class="text-2xl font-bold text-center text-gray-800 mb-6">
+      認証コード入力
+    </h1>
+
+    <div data-testid="auth-code-sent-message" class="bg-blue-50 border border-blue-200 rounded-lg p-4 mb-6">
+      <p class="text-blue-800 text-sm">
+        <strong><%= @user.email %></strong> に認証コードを送信しました。<br>
+        メールを確認して、6桁の認証コードを入力してください。
+      </p>
+    </div>
+
+    <%= form_with url: (@verify_form_url || login_verify_path), method: :post, local: true, class: "space-y-4" do |form| %>
+      <% if flash[:alert] %>
+        <div data-testid="auth-code-error-message" class="bg-red-50 border border-red-200 rounded-lg p-4">
+          <p class="text-red-800"><%= flash[:alert] %></p>
+        </div>
+      <% end %>
+
+      <div class="space-y-2">
+        <%= form.label :auth_code, "認証コード", class: "block text-sm font-medium text-gray-700" %>
+        <%= form.text_field :auth_code,
+            class: "w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent text-center text-2xl tracking-widest",
+            placeholder: "000000",
+            maxlength: 6,
+            pattern: "[0-9]{6}",
+            required: true,
+            autocomplete: "off" %>
+        <p class="text-xs text-gray-500">6桁の数字を入力してください</p>
+      </div>
+
+      <div class="pt-2">
+        <%= form.submit "認証", 
+            data: { testid: "auth-code-submit" },
+            class: "w-full bg-green-500 hover:bg-green-600 text-white font-semibold py-2 px-4 rounded focus:outline-none focus:ring-2 focus:ring-green-500 focus:ring-offset-2" %>
+      </div>
+    <% end %>
+
+    <div class="mt-4 text-center">
+      <%= link_to '最初からやり直す', login_path, class: "text-blue-500 hover:text-blue-600 text-sm" %>
+    </div>
+    
+    <% if @user.auth_code_expires_at %>
+      <div class="mt-2 text-center">
+        <p class="text-xs text-gray-500">
+          有効期限: <%= @user.auth_code_expires_at.strftime('%H:%M') %> まで
+        </p>
+      </div>
+    <% end %>
+  </div>
+</div>
+
+<!-- デバッグ用（開発環境のみ） -->
+<% if Rails.env.development? && @user.auth_code.present? %>
+  <div class="container mx-auto px-4 py-2">
+    <div class="max-w-md mx-auto">
+      <div class="bg-yellow-50 border border-yellow-200 rounded-lg p-3">
+        <p class="text-yellow-800 text-sm text-center">
+          <strong>開発用:</strong> 認証コード = <code class="bg-yellow-200 px-1 rounded"><%= @user.auth_code %></code>
+        </p>
+      </div>
+    </div>
+  </div>
+<% end %>

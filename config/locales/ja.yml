@@ -1,0 +1,27 @@
+ja:
+  activerecord:
+    # カラム名の日本語化
+    attributes:
+      user:
+        email: "メールアドレス"
+        password: "パスワード"
+        password_confirmation: "パスワード確認"
+        name: "氏名"
+        birth_date: "生年月日"
+        address: "住所"
+        phone_number: "電話番号"
+
+    errors:
+      # 汎用メッセージ
+      messages:
+        blank: "を入力してください"
+        taken: "は既に存在します"
+        too_short: "は%{count}文字以上で入力してください"
+        confirmation: "と一致しません"
+
+      # 個別対応（例外的に必要な場合のみ）
+      models:
+        user:
+          attributes:
+            password_confirmation:
+              confirmation: "とパスワードの入力が一致しません"

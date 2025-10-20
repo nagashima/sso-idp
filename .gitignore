@@ -1,0 +1,52 @@
+# macOS
+.DS_Store
+
+# Emacs
+*~
+
+# Ignore bundler config.
+/.bundle
+
+# Environment files
+/.env.local
+!/.env
+!/.env.local.example
+!/.env*.erb
+
+# Ignore all logfiles and tempfiles.
+/log/*
+/tmp/*
+!/log/.keep
+!/tmp/.keep
+
+# Ignore pidfiles, but keep the directory.
+/tmp/pids/*
+!/tmp/pids/
+!/tmp/pids/.keep
+
+# Ignore storage (uploaded files in development and any SQLite databases).
+/storage/*
+!/storage/.keep
+/tmp/storage/*
+!/tmp/storage/
+!/tmp/storage/.keep
+
+# Ignore master key for decrypting credentials and more.
+/config/master.key
+
+# Vite Ruby
+/public/vite*
+node_modules
+# Vite uses dotenv and suggests to ignore local-only env files. See
+# https://vitejs.dev/guide/env-and-mode.html#env-files
+*.local
+
+/setup/*
+
+# Claude Code & MCP development environment
+.claude/
+.mcp.json
+.serena/
+
+# RSpec
+spec/examples.txt

@@ -1,0 +1,37 @@
+serve:
+  public:
+    port: 4444
+    host: 0.0.0.0
+  admin:
+    port: 4445
+    host: 0.0.0.0
+  cookies:
+    same_site_mode: None  # Cross-Domain対応のため None に変更
+    same_site_legacy_workaround: true
+    secure: true  # HTTPS環境では必須、SameSite=None時は必須
+
+# dev: true を削除してセッション固定化
+
+dsn: mysql://rails:rails_password@db:3306/hydra_development?parseTime=true
+
+urls:
+  self:
+    issuer: https://idp.localhost
+  login: https://idp.localhost/auth/login
+  consent: https://idp.localhost/auth/consent
+  logout: https://idp.localhost/auth/logout
+  post_logout_redirect: https://idp.localhost/
+
+secrets:
+  system:
+    - hydra-fixed-development-secret-for-session-persistence-do-not-use-in-production
+
+oidc:
+  subject_identifiers:
+    supported_types:
+      - public
+    pairwise:
+      salt: hydra-salt-change-this-in-production
+
+oauth2:
+  expose_internal_errors: true
