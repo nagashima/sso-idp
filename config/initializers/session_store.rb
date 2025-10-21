@@ -1,16 +1,17 @@
 # ActionDispatch::Session::CacheStore（既存のValkey cache_storeを活用）
 # HTTPS環境では secure フラグ必須
+# セッション期限はJWT期限と統一（30分）
 if ENV['HOST_PORT'] == '443'
   # HTTPS環境: secure フラグ付き
   Rails.application.config.session_store :cache_store,
-    expire_after: 90.minutes,
+    expire_after: 30.minutes,
     key: "_idp_session",
     secure: true,
     httponly: true
 else
   # HTTP環境: secure フラグなし
   Rails.application.config.session_store :cache_store,
-    expire_after: 90.minutes,
+    expire_after: 30.minutes,
     key: "_idp_session"
 end
 

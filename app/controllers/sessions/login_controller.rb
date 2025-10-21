@@ -2,6 +2,9 @@ class Sessions::LoginController < ApplicationController
   before_action :redirect_if_logged_in, except: [:destroy]
   before_action :require_login_session, only: [:verification_form, :verify]
 
+  # ログアウト処理はCSRF検証をスキップ（セッション切れ時のエラー回避）
+  skip_forgery_protection only: [:destroy]
+
   # GET /login - ログインフォーム表示
   def login
   end

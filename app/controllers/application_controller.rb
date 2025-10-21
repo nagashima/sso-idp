@@ -6,6 +6,9 @@ class ApplicationController < ActionController::Base
   # CSRF保護強化
   protect_from_forgery with: :exception, prepend: true
 
+  # セッション期限切れ時のCSRFエラーをハンドリング
+  rescue_from ActionController::InvalidAuthenticityToken, with: :handle_session_expired
+
   # セキュリティヘッダー設定
   before_action :set_security_headers
 
@@ -64,6 +67,14 @@ class ApplicationController < ActionController::Base
   end
 
   private
+
+  # セッション期限切れ時の処理
+  def handle_session_expired
+    Rails.logger.warn "Session expired - CSRF token invalid. Clearing session and redirecting to login."
+    cookies.delete(:auth_token)
+    reset_session
+    redirect_to login_path, alert: 'セッションの有効期限が切れました。再度ログインしてください。'
+  end
 
   def set_security_headers
     response.headers['Strict-Transport-Security'] = 'max-age=31536000; includeSubDomains'
