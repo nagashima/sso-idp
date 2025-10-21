@@ -170,7 +170,7 @@ docker-compose exec db mysql -u rails idp_development -prails_password
 # クライアント一覧
 docker-compose exec hydra hydra list oauth2-clients --endpoint http://localhost:4445
 
-# 健全性チェック
+# ヘルスチェック
 curl -k https://idp.localhost/health/ready
 
 # Hydraセッション確認（開発用）

@@ -36,7 +36,7 @@ docker-compose up -d
 
 **動作確認**:
 - IdPトップページ: https://idp.localhost
-- ヘルスチェック: `curl -k https://idp.localhost/health/ready`
+- Hydraヘルスチェック: `curl -k https://idp.localhost/health/ready`
 
 ### ステップ3: テストユーザーの登録
 
