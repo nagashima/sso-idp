@@ -14,6 +14,8 @@ serve:
 
 dsn: mysql://rails:rails_password@db:3306/hydra_development?parseTime=true
 
+# 以下のURL設定はdocker-compose.ymlの環境変数（URLS_*）で上書きされます
+# docker-compose.ymlで HYDRA_PUBLIC_URL から動的に生成される設定が優先されます
 urls:
   self:
     issuer: https://idp.localhost
