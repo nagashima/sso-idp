@@ -10,15 +10,12 @@
 git clone [repository]
 cd sso-idp
 
-# 2. /etc/hosts設定（macOS/Linux）
-sudo sh -c 'echo "127.0.0.1 idp.localhost" >> /etc/hosts'
-
-# 3. 起動（初回は自動ビルド＋DB初期化）
+# 2. 起動（初回は自動ビルド＋DB初期化）
 docker-compose up -d
 ```
 
 ### 動作確認
-- **IdP認証画面**: https://idp.localhost
+- **IdP認証画面**: https://localhost:4443
 
 ### 日常開発
 ```bash
@@ -43,7 +40,7 @@ docker-compose logs -f    # ログ確認
            ┌─────────────────────┐
            │       nginx         │
            │      (HTTPS)        │
-           │     (port 443)      │
+           │   (host port 4443)  │
            └──────────┬──────────┘
                       │ リバースプロキシ
                       ▼
@@ -76,9 +73,9 @@ docker-compose logs -f    # ログ確認
 
 ```bash
 # HTTPS環境設定
-HOST_NAME=idp.localhost
-HOST_PORT=443
-HYDRA_PUBLIC_URL=https://idp.localhost
+HOST_NAME=localhost
+HOST_PORT=4443
+HYDRA_PUBLIC_URL=https://localhost:4443
 
 # ログアウト戦略
 LOGOUT_STRATEGY=local  # or 'global'
@@ -108,7 +105,7 @@ RPが `https://localhost:3443` で動作している場合：
 ```bash
 ./scripts/register-client.sh "https://localhost:3443/auth/sso/callback" \
   --first-party \
-  --cors-origin "https://idp.localhost,https://localhost:3443"
+  --cors-origin "https://localhost:4443,https://localhost:3443"
 ```
 
 #### **登録結果の確認**
@@ -171,7 +168,7 @@ docker-compose exec db mysql -u rails idp_development -prails_password
 docker-compose exec hydra hydra list oauth2-clients --endpoint http://localhost:4445
 
 # ヘルスチェック
-curl -k https://idp.localhost/health/ready
+curl -k https://localhost:4443/health/ready
 
 # Hydraセッション確認（開発用）
 docker-compose exec db mysql -u rails hydra_development -prails_password -e \
@@ -201,7 +198,7 @@ docker-compose exec valkey valkey-cli -a valkey_password FLUSHALL
 1. 外部RPアプリケーション用クライアントを登録
 2. 外部RPから認証URLアクセス:
 ```
-https://idp.localhost/oauth2/auth?client_id=CLIENT_ID&response_type=code&scope=openid%20profile%20email&redirect_uri=https://your-rp-domain.com/auth/callback&state=test
+https://localhost:4443/oauth2/auth?client_id=CLIENT_ID&response_type=code&scope=openid%20profile%20email&redirect_uri=https://your-rp-domain.com/auth/callback&state=test
 ```
 3. IdP認証画面でログイン → 同意画面 → 外部RPへリダイレクト
 
@@ -211,14 +208,14 @@ https://idp.localhost/oauth2/auth?client_id=CLIENT_ID&response_type=code&scope=o
 ./scripts/register-client.sh "https://your-rp-domain.com/auth/callback" --first-party
 
 # 登録されたclient_idを使用してテスト
-https://idp.localhost/oauth2/auth?client_id={GENERATED_CLIENT_ID}&response_type=code&scope=openid%20profile%20email&redirect_uri=https://your-rp-domain.com/auth/callback&state=test
+https://localhost:4443/oauth2/auth?client_id={GENERATED_CLIENT_ID}&response_type=code&scope=openid%20profile%20email&redirect_uri=https://your-rp-domain.com/auth/callback&state=test
 ```
 → 同意画面をスキップして自動同意（metadata判定）
 
 ### Cross-Domain SSO動作確認
 ```bash
 # IdP側でログイン状態を確認
-curl -k -H "Cookie: your_session_cookie" https://idp.localhost/profile
+curl -k -H "Cookie: your_session_cookie" https://localhost:4443/profile
 
 # 外部RP側でSSO実行（3回連続で実行し、動作ログを確認）
 # IdPログを確認: docker-compose logs -f web | grep "IdP ENTRY"

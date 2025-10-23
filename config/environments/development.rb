@@ -46,24 +46,36 @@ Rails.application.configure do
   config.action_mailer.delivery_method = :letter_opener_web
   
   # 環境変数による自動切り替え（HTTP/HTTPS対応）
-  if ENV['HOST_PORT'] == '443'
+  host_name = ENV.fetch('HOST_NAME', 'localhost')
+  host_port = ENV.fetch('HOST_PORT', '443').to_i
+
+  if host_port == 443 || host_port == 4443
     # HTTPS環境
     config.force_ssl = true
     config.ssl_options = { redirect: false }
-    config.hosts = ['idp.localhost']
-    
+    config.hosts = [host_name, "host.docker.internal"]
+
     # HTTPS環境でのSecure Cookie設定
     config.session_store :cookie_store, key: '_idp_session', secure: true, httponly: true
-    
-    Rails.application.routes.default_url_options = { 
-      host: 'idp.localhost', 
-      protocol: 'https'
-    }
+
+    # ポート番号が443の場合は省略、それ以外は明示
+    if host_port == 443
+      Rails.application.routes.default_url_options = {
+        host: host_name,
+        protocol: 'https'
+      }
+    else
+      Rails.application.routes.default_url_options = {
+        host: host_name,
+        port: host_port,
+        protocol: 'https'
+      }
+    end
   else
     # HTTP環境（戻す場合）
-    Rails.application.routes.default_url_options = { 
-      host: ENV.fetch('HOST_NAME', 'localhost'), 
-      port: ENV.fetch('HOST_PORT', '8080').to_i
+    Rails.application.routes.default_url_options = {
+      host: host_name,
+      port: host_port
     }
   end
 

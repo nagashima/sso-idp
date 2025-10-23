@@ -8,24 +8,13 @@
 ## 📋 前提条件
 
 - Docker & Docker Compose
-- macOS/Linux環境（Windowsの場合は`/etc/hosts`の代わりにhostsファイルを編集）
+- macOS/Linux/Windows環境
 
 ---
 
 ## 🚀 クイックスタート（初回セットアップ）
 
-### ステップ1: /etc/hosts設定
-
-IdPは`idp.localhost`で動作するため、名前解決の設定が必要です。
-
-```bash
-# macOS/Linux
-sudo sh -c 'echo "127.0.0.1 idp.localhost" >> /etc/hosts'
-```
-
-**Windows の場合**: `C:\Windows\System32\drivers\etc\hosts` に `127.0.0.1 idp.localhost` を追加
-
-### ステップ2: IdPの起動
+### ステップ1: IdPの起動
 
 ```bash
 cd sso-idp
@@ -35,20 +24,20 @@ docker-compose up -d
 初回起動時は自動的にビルドとDB初期化が実行されます。
 
 **動作確認**:
-- IdPトップページ: https://idp.localhost
-- Hydraヘルスチェック: `curl -k https://idp.localhost/health/ready`
+- IdPトップページ: https://localhost:4443
+- Hydraヘルスチェック: `curl -k https://localhost:4443/health/ready`
 
-### ステップ3: テストユーザーの登録
+### ステップ2: テストユーザーの登録
 
 IdPでSSO認証を行うためのテストユーザーを登録します。
 
-1. **ユーザー仮登録**: https://idp.localhost にアクセスし、サインアップフォームから登録
-2. **確認メールの確認**: https://idp.localhost/letter_opener で仮登録メールを確認
+1. **ユーザー仮登録**: https://localhost:4443 にアクセスし、サインアップフォームから登録
+2. **確認メールの確認**: https://localhost:4443/letter_opener で仮登録メールを確認
 3. **本登録**: メール内のリンクをクリックして本登録完了
 
 > **補足**: IdPには`letter_opener` gemが組み込まれており、開発環境でのメール確認が可能です。
 
-### ステップ4: RPクライアントの登録（IdP側で実行）
+### ステップ3: RPクライアントの登録（IdP側で実行）
 
 RPアプリケーションをIdPに登録し、OAuth2クライアント認証情報を取得します。
 
@@ -56,7 +45,7 @@ RPアプリケーションをIdPに登録し、OAuth2クライアント認証情
 cd sso-idp
 ./scripts/register-client.sh "https://localhost:3443/auth/sso/callback" \
   --first-party \
-  --cors-origin "https://idp.localhost,https://localhost:3443"
+  --cors-origin "https://localhost:4443,https://localhost:3443"
 ```
 
 実行後、以下の情報が表示されます（後で使用するのでメモしてください）：
@@ -67,7 +56,7 @@ cd sso-idp
 - `--first-party`: 信頼済みクライアント（同意画面をスキップ）
 - `--cors-origin`: CORS許可オリジン（複数指定可能）
 
-### ステップ5: RP側の環境設定
+### ステップ4: RP側の環境設定
 
 取得したクライアント認証情報をRP側に設定します。
 
@@ -88,7 +77,7 @@ OAUTH_CLIENT_ID=abc123def456...
 OAUTH_CLIENT_SECRET=xyz789uvw012...
 ```
 
-### ステップ6: RPの起動
+### ステップ5: RPの起動
 
 ```bash
 cd sso-rp
@@ -106,8 +95,8 @@ docker-compose up -d
 
 1. **RPにアクセス**: https://localhost:3443
 2. **SSOログイン開始**: "Login with SSO"ボタンをクリック
-3. **IdPで認証**: `https://idp.localhost`の認証画面にリダイレクトされる
-   - ステップ3で登録したメールアドレスとパスワードでログイン
+3. **IdPで認証**: `https://localhost:4443`の認証画面にリダイレクトされる
+   - ステップ2で登録したメールアドレスとパスワードでログイン
    - 2段階認証コードを入力
 4. **RPにリダイレクト**: 認証成功後、RPに戻りログイン状態になる
 5. **ユーザー情報表示**: IdPから取得したユーザー情報が表示される
@@ -134,7 +123,7 @@ docker-compose up -d
        ▼                             ▼
 ┌─────────────────────┐    ┌─────────────────────┐
 │  IdP (sso-idp)      │    │  RP (sso-rp)        │
-│  idp.localhost:443  │◄───┤  localhost:3443     │
+│  localhost:4443     │◄───┤  localhost:3443     │
 │                     │    │                     │
 │  ┌───────────┐      │    │  ┌───────────┐      │
 │  │  Rails    │      │    │  │  Rails    │      │
@@ -156,7 +145,7 @@ docker-compose up -d
 ### 認証フロー詳細
 
 1. ユーザーがRPの「Login with SSO」をクリック
-2. IdPの認証画面にリダイレクト（`https://idp.localhost/oauth2/auth?...`）
+2. IdPの認証画面にリダイレクト（`https://localhost:4443/oauth2/auth?...`）
 3. IdPでユーザー認証（メール・パスワード・2段階認証コード）
 4. 信頼済みクライアントの場合、同意画面はスキップ
 5. 認証コードを持ってRPにリダイレクト
@@ -217,16 +206,12 @@ docker-compose exec app bundle exec rails console
 #### 1. IdPに接続できない
 
 ```bash
-# /etc/hostsの設定確認
-cat /etc/hosts | grep idp.localhost
-# → "127.0.0.1 idp.localhost" が存在するか確認
-
 # IdPの起動確認
-curl -k https://idp.localhost/health/ready
+curl -k https://localhost:4443/health/ready
 
-# RPコンテナ内からの名前解決確認
-cd sso-rp
-docker-compose exec app getent hosts idp.localhost
+# DockerコンテナがポートをLISTENしているか確認
+docker-compose ps
+# nginxコンテナが 0.0.0.0:4443->443/tcp でマッピングされているか確認
 ```
 
 #### 2. OAuth2認証エラー
@@ -242,7 +227,7 @@ docker-compose exec app getent hosts idp.localhost
 #### 3. ユーザー登録メールが届かない
 
 開発環境では実際のメールは送信されません。以下のURLでメールを確認してください：
-- https://idp.localhost/letter_opener
+- https://localhost:4443/letter_opener
 
 #### 4. SSL証明書エラー
 
@@ -320,10 +305,9 @@ docker-compose restart hydra
 
 初回セットアップ時は以下の順序で実行してください：
 
-- [ ] `/etc/hosts`に`idp.localhost`を追加
 - [ ] IdPを起動（`cd sso-idp && docker-compose up -d`）
-- [ ] IdPでテストユーザーを登録（https://idp.localhost）
-- [ ] letter_openerでメール確認・本登録完了（https://idp.localhost/letter_opener）
+- [ ] IdPでテストユーザーを登録（https://localhost:4443）
+- [ ] letter_openerでメール確認・本登録完了（https://localhost:4443/letter_opener）
 - [ ] IdPでRPクライアントを登録（`./scripts/register-client.sh ...`）
 - [ ] CLIENT_IDとCLIENT_SECRETをメモ
 - [ ] RP側で`.env.local`を作成・編集
