@@ -226,8 +226,8 @@ curl -k -H "Cookie: your_session_cookie" https://localhost:4443/profile
 ## 📚 技術スタック
 
 - **Container**: Docker + Docker Compose
-- **Ruby**: 3.4.5
-- **Rails**: 8.0.2.1
+- **Ruby**: 3.4.7
+- **Rails**: 8.0.3
 - **Database**: MySQL 8.0 (Rails + Hydra共用、内部接続のみ)
 - **Cache/Session**: Valkey 8.0 (Rails専用、内部接続のみ)
 - **OAuth2 Server**: ORY Hydra v2.3.0
