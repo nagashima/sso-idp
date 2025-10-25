@@ -1,6 +1,6 @@
 # Node.js環境準備
 FROM node:22-slim AS node-base
-FROM ruby:3.4.5-slim
+FROM ruby:3.4.7-slim
 
 # 環境変数設定
 ENV RAILS_ENV="development" \

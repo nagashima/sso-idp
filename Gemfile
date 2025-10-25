@@ -1,20 +1,20 @@
 source "https://rubygems.org"
 
-ruby "3.4.5"
+ruby "3.4.7"
 
 # Rails 8.0系最新
-gem "rails", "~> 8.0.2"
+gem "rails", "~> 8.0.3"
 
 # Database & Server
-gem "mysql2", "~> 0.5"
-gem "puma", ">= 5.0"
+gem "mysql2", "~> 0.5.7"
+gem "puma", "~> 7.1"
 
 # Core Rails features
 gem "jbuilder"
 gem "bootsnap", require: false
 
 # Authentication & Security
-gem "bcrypt", "~> 3.1.7"
+gem "bcrypt", "~> 3.1.20"
 
 # API & CORS
 gem "rack-cors"
@@ -32,7 +32,7 @@ gem "redis", ">= 4.0.1"
 gem "vite_rails"
 
 # Image processing
-gem "image_processing", "~> 1.2"
+gem "image_processing", "~> 1.14"
 
 # Windows support
 gem "tzinfo-data", platforms: %i[ windows jruby ]
