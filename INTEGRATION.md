@@ -255,8 +255,8 @@ docker-compose restart hydra
 ### IdP (sso-idp)
 
 - **Container**: Docker + Docker Compose
-- **Ruby**: 3.4.5
-- **Rails**: 8.0.2.1
+- **Ruby**: 3.4.7
+- **Rails**: 8.0.3
 - **Database**: MySQL 8.0
 - **Cache/Session**: Valkey 8.0
 - **OAuth2 Server**: ORY Hydra v2.3.0
