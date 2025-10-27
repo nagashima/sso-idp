@@ -43,6 +43,8 @@ module Api
 
       def verify_access_token(token)
         # ORY HydraのIntrospectionエンドポイントでトークンを検証
+        # 注: Hydra Admin API (4445)は内部ネットワークから認証不要
+        #     tokenパラメータだけでユーザーを特定できるため、basic_authは不要
         uri = URI("#{ENV['HYDRA_ADMIN_URL']}/admin/oauth2/introspect")
         http = Net::HTTP.new(uri.host, uri.port)
         http.use_ssl = uri.scheme == 'https'
@@ -50,7 +52,6 @@ module Api
 
         request = Net::HTTP::Post.new(uri)
         request.set_form_data({ token: token })
-        request.basic_auth(ENV['OAUTH_CLIENT_ID'], ENV['OAUTH_CLIENT_SECRET'])
 
         response = http.request(request)
 

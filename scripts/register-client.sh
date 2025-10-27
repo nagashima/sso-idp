@@ -1,9 +1,9 @@
-#!/bin/bash
+#!/usr/bin/env bash
 set -e
 
 # シンプルなOAuth2クライアント登録スクリプト
 # 使用方法: ./register-client.sh "https://localhost:3443/callback" [--first-party] [--cors-origin "domain1,domain2"]
-# ex) ./register-client.sh "https://localhost:3443/auth/sso/callback" --first-party --cors-origin "https://idp.localhost,https://localhost:3443"
+# ex) ./register-client.sh "https://localhost:3443/auth/sso/callback" --first-party --cors-origin "https://localhost:4443,https://localhost:3443"
 
 REDIRECT_URI="$1"
 FIRST_PARTY=false
@@ -35,7 +35,7 @@ if [ -z "$REDIRECT_URI" ]; then
     echo "例:"
     echo "  $0 \"http://localhost:3001/auth/callback\""
     echo "  $0 \"http://localhost:3001/auth/callback\" --first-party"
-    echo "  $0 \"https://localhost:3443/auth/sso/callback\" --first-party --cors-origin \"https://idp.localhost,https://localhost:3443\""
+    echo "  $0 \"https://localhost:3443/auth/sso/callback\" --first-party --cors-origin \"https://localhost:4443,https://localhost:3443\""
     exit 1
 fi
 
@@ -46,11 +46,14 @@ until docker-compose exec hydra wget -q --spider http://localhost:4444/health/re
     sleep 2
 done
 
+# リダイレクトURIからホスト名を抽出（クライアント名として使用）
+CLIENT_NAME=$(echo "$REDIRECT_URI" | sed -E 's|^https?://([^/]+).*|\1|')
+
 # コマンド構築
 HYDRA_CMD="docker-compose exec hydra hydra create oauth2-client"
 HYDRA_CMD="$HYDRA_CMD --endpoint http://localhost:4445"
 HYDRA_CMD="$HYDRA_CMD --format json"
-HYDRA_CMD="$HYDRA_CMD --name \"Simple RP Client\""
+HYDRA_CMD="$HYDRA_CMD --name \"$CLIENT_NAME\""
 HYDRA_CMD="$HYDRA_CMD --scope openid --scope profile --scope email"
 HYDRA_CMD="$HYDRA_CMD --grant-type authorization_code --grant-type refresh_token"
 HYDRA_CMD="$HYDRA_CMD --response-type code"
@@ -82,8 +85,9 @@ echo ""
 CLIENT_JSON=$(eval $HYDRA_CMD)
 
 if [ $? -eq 0 ]; then
-    CLIENT_ID=$(echo "$CLIENT_JSON" | jq -r '.client_id')
-    CLIENT_SECRET=$(echo "$CLIENT_JSON" | jq -r '.client_secret')
+    # JSONパース（sed使用、jq不要でWindows環境でも動作）
+    CLIENT_ID=$(echo "$CLIENT_JSON" | sed -n 's/.*"client_id":"\([^"]*\)".*/\1/p')
+    CLIENT_SECRET=$(echo "$CLIENT_JSON" | sed -n 's/.*"client_secret":"\([^"]*\)".*/\1/p')
 
     echo "✅ 登録完了!"
     echo ""

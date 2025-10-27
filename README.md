@@ -88,6 +88,13 @@ LOGOUT_STRATEGY=local  # or 'global'
 ### RPクライアント登録
 
 #### **登録**
+
+> **Windows環境の場合**: Git Bash/WSL等では明示的に `bash` を指定してください
+> ```bash
+> bash scripts/register-client.sh "https://your-rp-domain.com/auth/callback"
+> ```
+> ※ `jq`コマンドは不要です（標準の`sed`コマンドで動作します）
+
 ```bash
 # 外部RPクライアント（同意画面あり）
 ./scripts/register-client.sh "https://your-rp-domain.com/auth/callback"
