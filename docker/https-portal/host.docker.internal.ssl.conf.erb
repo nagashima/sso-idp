@@ -1,0 +1,13 @@
+# HTTPS設定 - host.docker.internal
+server {
+    listen 443 ssl;
+    http2 on;
+    server_name host.docker.internal;
+
+    # https-portalが自動生成する証明書を使用
+    ssl_certificate <%= domain.chained_cert_path %>;
+    ssl_certificate_key <%= domain.key_path %>;
+
+    # 共通設定をinclude
+    include /var/lib/nginx-conf/common-config.conf;
+}

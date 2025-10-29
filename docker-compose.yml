@@ -1,12 +1,29 @@
 services:
-  nginx:
-    image: nginx:alpine
+  # nginx から https-portal に移行（Phase 2: 証明書自動管理）
+  # nginx:
+  #   image: nginx:alpine
+  #   ports:
+  #     - "8080:80"   # HTTP→HTTPS リダイレクト
+  #     - "4443:443"  # HTTPS
+  #   volumes:
+  #     - ./docker/nginx/nginx.conf:/etc/nginx/conf.d/default.conf
+  #     - ./docker/nginx/ssl:/etc/nginx/ssl
+  #   depends_on:
+  #     - web
+  #     - hydra
+
+  https-portal:
+    image: steveltn/https-portal:1
     ports:
       - "8080:80"   # HTTP→HTTPS リダイレクト
       - "4443:443"  # HTTPS
     volumes:
-      - ./docker/nginx/nginx.conf:/etc/nginx/conf.d/default.conf
-      - ./docker/nginx/ssl:/etc/nginx/ssl
+      - ./docker/https-portal/localhost.ssl.conf.erb:/var/lib/nginx-conf/localhost.ssl.conf.erb:ro
+      - ./docker/https-portal/host.docker.internal.ssl.conf.erb:/var/lib/nginx-conf/host.docker.internal.ssl.conf.erb:ro
+      - ./docker/https-portal/common-config.conf:/var/lib/nginx-conf/common-config.conf:ro
+    environment:
+      STAGE: 'local'  # 自己署名証明書を自動生成
+      DOMAINS: 'localhost, host.docker.internal'
     depends_on:
       - web
       - hydra
