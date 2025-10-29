@@ -1,0 +1,66 @@
+# HTTPS設定
+server {
+    listen 443 ssl;
+    http2 on;
+    server_name host.docker.internal;
+
+    # https-portalが自動生成する証明書を使用
+    ssl_certificate <%= domain.chained_cert_path %>;
+    ssl_certificate_key <%= domain.key_path %>;
+    ssl_protocols TLSv1.2 TLSv1.3;
+
+    # セキュリティヘッダー
+    add_header Strict-Transport-Security "max-age=31536000; includeSubDomains" always;
+
+    # 共通proxy設定
+    proxy_set_header Host $http_host;
+    proxy_set_header X-Real-IP $remote_addr;
+    proxy_set_header X-Forwarded-For $proxy_add_x_forwarded_for;
+    proxy_set_header X-Forwarded-Proto https;
+    proxy_set_header X-Forwarded-Port $server_port;
+    proxy_redirect off;
+    proxy_cookie_flags ~ secure;
+
+    # IdP Rails アプリケーションの認証関連パス (port 3000)
+    location /auth/ {
+        proxy_pass http://web:3000;
+    }
+
+    # Hydra Public API - OAuth2エンドポイント (port 4444)
+    location /oauth2/ {
+        proxy_pass http://hydra:4444;
+    }
+
+    # Hydra ヘルスチェックエンドポイント
+    location /health/ {
+        proxy_pass http://hydra:4444;
+    }
+
+    # Hydra の .well-known エンドポイント
+    location /.well-known/ {
+        proxy_pass http://hydra:4444;
+    }
+
+    # Hydra UserInfo エンドポイント
+    location /userinfo {
+        proxy_pass http://hydra:4444/userinfo;
+    }
+
+    # Vite dev server - HMR WebSocket用 (port 3036)
+    # 将来のVite HMR対応のために追加（現在は未使用）
+    location /vite-dev/ {
+        proxy_pass http://web:3036;
+        proxy_http_version 1.1;
+        proxy_set_header Upgrade $http_upgrade;
+        proxy_set_header Connection "upgrade";
+        proxy_set_header Host $host;
+        proxy_set_header X-Real-IP $remote_addr;
+        proxy_set_header X-Forwarded-For $proxy_add_x_forwarded_for;
+        proxy_set_header X-Forwarded-Proto https;
+    }
+
+    # IdP Rails アプリケーションのその他のパス (port 3000)
+    location / {
+        proxy_pass http://web:3000;
+    }
+}

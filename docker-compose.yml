@@ -19,9 +19,10 @@ services:
       - "4443:443"  # HTTPS
     volumes:
       - ./docker/https-portal/localhost.conf.erb:/var/lib/nginx-conf/localhost.conf.erb:ro
+      - ./docker/https-portal/host.docker.internal.conf.erb:/var/lib/nginx-conf/host.docker.internal.conf.erb:ro
     environment:
       STAGE: 'local'  # 自己署名証明書を自動生成
-      DOMAINS: 'localhost'
+      DOMAINS: 'localhost, host.docker.internal'
     depends_on:
       - web
       - hydra
