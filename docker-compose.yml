@@ -20,7 +20,7 @@ services:
     volumes:
       - ./docker/https-portal/localhost.conf.erb:/var/lib/nginx-conf/localhost.conf.erb:ro
       - ./docker/https-portal/host.docker.internal.conf.erb:/var/lib/nginx-conf/host.docker.internal.conf.erb:ro
-      - ./docker/https-portal/common-locations.conf:/var/lib/nginx-conf/common-locations.conf:ro
+      - ./docker/https-portal/common-config.conf:/var/lib/nginx-conf/common-config.conf:ro
     environment:
       STAGE: 'local'  # 自己署名証明書を自動生成
       DOMAINS: 'localhost, host.docker.internal'
