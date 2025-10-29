@@ -18,11 +18,11 @@ dsn: mysql://rails:rails_password@db:3306/hydra_development?parseTime=true
 # docker-compose.ymlで HYDRA_PUBLIC_URL から動的に生成される設定が優先されます
 urls:
   self:
-    issuer: https://idp.localhost
-  login: https://idp.localhost/auth/login
-  consent: https://idp.localhost/auth/consent
-  logout: https://idp.localhost/auth/logout
-  post_logout_redirect: https://idp.localhost/
+    issuer: https://localhost:4443
+  login: https://localhost:4443/auth/login
+  consent: https://localhost:4443/auth/consent
+  logout: https://localhost:4443/auth/logout
+  post_logout_redirect: https://localhost:4443/
 
 secrets:
   system:

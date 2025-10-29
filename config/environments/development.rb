@@ -46,7 +46,7 @@ Rails.application.configure do
   config.action_mailer.delivery_method = :letter_opener_web
   
   # 環境変数による自動切り替え（HTTP/HTTPS対応）
-  host_name = ENV.fetch('HOST_NAME', 'idp.localhost')
+  host_name = ENV.fetch('HOST_NAME', 'localhost')
   host_port = ENV.fetch('HOST_PORT', '443').to_i
 
   if host_port == 443 || host_port == 4443
