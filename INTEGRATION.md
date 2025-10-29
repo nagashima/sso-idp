@@ -1,9 +1,11 @@
 # SSO認証システム - セットアップガイド
 
-このリポジトリには2つのプロジェクトが含まれています：
+このSSO認証システムは2つの独立したリポジトリで構成されています：
 
-1. **sso-idp**: Nginx + Rails + ORY Hydraで実装したIdentity Provider (IdP)
+1. **sso-idp**: https-portal (nginx) + Rails + ORY Hydraで実装したIdentity Provider (IdP)
 2. **sso-rp**: Nginx + Railsで実装したRelying Party (RP) - IdP動作確認用アプリケーション
+
+各リポジトリは完全に独立しており、別々にクローン・起動する必要があります。
 
 ## 📋 前提条件
 
@@ -260,7 +262,7 @@ docker-compose restart hydra
 - **Database**: MySQL 8.0
 - **Cache/Session**: Valkey 8.0
 - **OAuth2 Server**: ORY Hydra v2.3.0
-- **Web Server**: nginx (HTTPS)
+- **Web Server**: https-portal (nginxベース、証明書自動管理 + HTTPS)
 
 ### RP (sso-rp)
 
@@ -287,7 +289,7 @@ docker-compose restart hydra
 
 - `sso-idp/.env` - 環境変数設定
 - `sso-idp/docker-compose.yml` - Docker構成
-- `sso-idp/docker/nginx/` - nginx SSL設定
+- `sso-idp/docker/https-portal/` - https-portal設定（nginxベース）
 - `sso-idp/docker/hydra/` - ORY Hydra設定
 - `sso-idp/scripts/register-client.sh` - OAuth2クライアント登録スクリプト
 

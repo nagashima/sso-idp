@@ -238,13 +238,13 @@ curl -k -H "Cookie: your_session_cookie" https://localhost:4443/profile
 - **Database**: MySQL 8.0 (Rails + Hydra共用、内部接続のみ)
 - **Cache/Session**: Valkey 8.0 (Rails専用、内部接続のみ)
 - **OAuth2 Server**: ORY Hydra v2.3.0
-- **Web Server**: nginx (HTTPS終端 + リバースプロキシ)
+- **Web Server**: https-portal (nginxベース、証明書自動管理 + HTTPS終端 + リバースプロキシ)
 
 ---
 
 ## 📖 設定ファイル
 
-- **[docker/nginx/](./docker/nginx/)** - nginx SSL設定ファイル
+- **[docker/https-portal/](./docker/https-portal/)** - https-portal設定ファイル（nginxベース）
 - **[docker/hydra/](./docker/hydra/)** - ORY Hydra設定ファイル
 - **[docker/mysql/](./docker/mysql/)** - MySQL初期化スクリプト
 - **[scripts/](./scripts/)** - OAuth2クライアント登録スクリプト
