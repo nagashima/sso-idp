@@ -1,8 +1,8 @@
-# RP管理API仕様書 (β版)
+# API仕様書
 
-**Version**: 0.1.0-beta
-**Date**: 2025-10-27
-**Status**: Draft for Review
+**Version**: 1.0.1
+**Date**: 2025-10-28
+**Status**: Stable
 
 ---
 
@@ -14,8 +14,9 @@
 4. [API仕様](#api仕様)
 5. [認証フロー](#認証フロー)
 6. [セキュリティ](#セキュリティ)
-7. [実装スコープ](#実装スコープ)
-8. [今後の検討事項](#今後の検討事項)
+7. [OpenAPI実装ガイド](#openapi実装ガイド)
+8. [実装スコープ](#実装スコープ)
+9. [今後の検討事項](#今後の検討事項)
 
 ---
 
@@ -161,6 +162,8 @@ Authorization: Basic <Base64(client_id:client_secret)>
 
 ### エンドポイント
 
+**重要**: クエリパラメータを使う検索系エンドポイント（`/users?xxx`）のレスポンスは**常に配列形式**です。
+
 #### 1. ユーザーID指定取得
 
 **Endpoint**: `GET /api/v1/users/:id`
@@ -199,7 +202,7 @@ Authorization: Basic Y2xpZW50X2lkOmNsaWVudF9zZWNyZXQ=
 
 **Endpoint**: `GET /api/v1/users?email=xxx`
 
-**説明**: 指定したメールアドレスのユーザー情報を取得
+**説明**: 指定したメールアドレスのユーザー情報を取得（レスポンスは常に配列形式）
 
 **Request**:
 ```http
@@ -207,7 +210,25 @@ GET /api/v1/users?email=user@example.com
 Authorization: Basic Y2xpZW50X2lkOmNsaWVudF9zZWNyZXQ=
 ```
 
-**Response**: ユーザーID指定取得と同じ
+**Response** (200 OK):
+```json
+[
+  {
+    "id": 123,
+    "email": "user@example.com",
+    "name": "山田太郎",
+    "birth_date": "1990-01-01",
+    "phone_number": "090-1234-5678",
+    "address": "東京都渋谷区...",
+    "activated": true
+  }
+]
+```
+
+**Response** (200 OK - 該当なし):
+```json
+[]
+```
 
 ---
 
@@ -215,7 +236,7 @@ Authorization: Basic Y2xpZW50X2lkOmNsaWVudF9zZWNyZXQ=
 
 **Endpoint**: `GET /api/v1/users?ids=xxx`
 
-**説明**: 複数のユーザーIDを指定して一括取得
+**説明**: 複数のユーザーIDを指定して一括取得（レスポンスは常に配列形式）
 
 **Request**:
 ```http
@@ -341,18 +362,216 @@ RpClient.create!(
 
 ---
 
+## OpenAPI実装ガイド
+
+### OpenAPIとは
+
+**OpenAPI Specification**は、REST APIの設計書を標準フォーマット（YAML/JSON）で記述する仕様です。
+
+**メリット**:
+- ✅ API仕様を機械可読な形式で定義
+- ✅ Swagger UIなどでインタラクティブなドキュメント生成
+- ✅ コード自動生成（クライアントSDK、サーバースタブ）
+- ✅ IdP/RP間で仕様を事前合意し、並行開発が可能
+
+### ファイル配置
+
+```
+/Users/n/Workspace/Labo/work/sso-idp/
+└── docs/
+    └── openapi.yaml  # OpenAPI 3.0仕様書
+```
+
+### 開発フロー
+
+```
+1. docs/openapi.yaml を作成
+   ↓
+2. IdP実装（Rails）
+   ↓ 並行開発
+3. RP実装（コード生成）
+```
+
+**並行開発の実現**:
+- IdP側: 仕様書を見ながらRailsで実装
+- RP側: 同じ仕様書からクライアントコード自動生成
+- 両者: OpenAPI仕様書が唯一の真実（Single Source of Truth）
+
+---
+
+### Swagger UIでの確認
+
+#### Docker Composeで起動（推奨）
+
+```yaml
+# docker-compose.yml に追加
+services:
+  swagger-ui:
+    image: swaggerapi/swagger-ui
+    ports:
+      - "8081:8080"
+    environment:
+      SWAGGER_JSON: /openapi.yaml
+    volumes:
+      - ./docs/openapi.yaml:/openapi.yaml:ro
+```
+
+```bash
+docker-compose up swagger-ui
+
+# ブラウザで確認
+open http://localhost:8081
+```
+
+#### スタンドアロンで起動
+
+```bash
+docker run -p 8081:8080 \
+  -e SWAGGER_JSON=/openapi.yaml \
+  -v $(pwd)/docs/openapi.yaml:/openapi.yaml \
+  swaggerapi/swagger-ui
+```
+
+**Swagger UIでできること**:
+- API一覧の閲覧
+- リクエスト/レスポンスの確認
+- 「Try it out」で実際にAPIを呼び出し
+- 認証情報（Basic Auth）の設定
+
+---
+
+### RP側でのコード生成
+
+#### OpenAPI Generatorを使用
+
+```bash
+# クライアントコード生成（Ruby例）
+openapi-generator generate \
+  -i docs/openapi.yaml \
+  -g ruby \
+  -o generated-client
+
+# 生成されたコードを使用
+cd generated-client
+bundle install
+```
+
+**使用例**:
+```ruby
+require 'openapi_client'
+
+# 設定
+OpenapiClient.configure do |config|
+  config.host = 'localhost:4443'
+  config.scheme = 'https'
+  config.username = ENV['CLIENT_ID']
+  config.password = ENV['CLIENT_SECRET']
+end
+
+# API呼び出し
+api = OpenapiClient::UsersApi.new
+user = api.get_user(123)
+puts user.name  # => "山田太郎"
+```
+
+#### 他の言語
+
+```bash
+# Python
+openapi-generator generate -i docs/openapi.yaml -g python
+
+# JavaScript/TypeScript
+openapi-generator generate -i docs/openapi.yaml -g typescript-axios
+
+# Go
+openapi-generator generate -i docs/openapi.yaml -g go
+```
+
+---
+
+### バリデーション
+
+#### OpenAPI仕様書のバリデーション
+
+```bash
+# Swagger CLIでバリデーション
+docker run --rm -v $(pwd):/workspace \
+  openapitools/openapi-generator-cli validate \
+  -i /workspace/docs/openapi.yaml
+```
+
+#### 実装との整合性チェック
+
+**Committee gem**（Rack Middleware）:
+```ruby
+# Gemfile
+gem 'committee'
+
+# config/initializers/committee.rb
+require 'committee/rails'
+
+Rails.application.config.middleware.use(
+  Committee::Middleware::RequestValidation,
+  schema_path: Rails.root.join('docs', 'openapi.yaml').to_s
+)
+```
+
+これにより、Railsの実装がOpenAPI仕様に準拠しているか自動チェック。
+
+---
+
+### 運用フロー
+
+#### 仕様変更時
+
+```
+1. docs/openapi.yaml を更新
+   ↓
+2. バリデーション実行
+   ↓
+3. Swagger UIで確認
+   ↓
+4. IdP側実装を更新
+   ↓
+5. RP側コード再生成
+```
+
+#### バージョン管理
+
+```
+docs/
+├── openapi.yaml         # 現行バージョン（v1）
+└── openapi-v2.yaml      # 将来のv2（互換性破壊時）
+```
+
+**APIバージョニング戦略**:
+- URL: `/api/v1/users` → `/api/v2/users`
+- ヘッダー: `Accept: application/vnd.api+json; version=2`
+
+---
+
+### 参考リンク
+
+- [OpenAPI Specification 3.0](https://swagger.io/specification/)
+- [Swagger Editor](https://editor.swagger.io/) - ブラウザでYAML編集
+- [OpenAPI Generator](https://openapi-generator.tech/)
+- [Committee gem](https://github.com/interagent/committee)
+
+---
+
 ## 実装スコープ
 
 ### Phase 1: 基本実装（本仕様）
 
-- [x] RpClient モデル作成
-- [x] マイグレーション
-- [x] API Controller 実装
+- [ ] RpClient モデル作成
+- [ ] マイグレーション
+- [ ] API Controller 実装
   - `/api/v1/users/:id`
   - `/api/v1/users?email=xxx`
   - `/api/v1/users?ids=1,2,3`
-- [x] Basic認証 + IP制限
-- [x] `register-client.sh` の拡張（`--allowed-ips` オプション）
+- [ ] Basic認証 + IP制限
+- [ ] `register-client.sh` の拡張（`--allowed-ips` オプション）
+- [ ] `docs/openapi.yaml` 作成
 
 ### Phase 2: 拡張機能（将来）
 
@@ -482,7 +701,12 @@ class IdpApiClient
 
     response = http_client(uri).request(request)
 
-    response.code == '200' ? JSON.parse(response.body) : nil
+    if response.code == '200'
+      users = JSON.parse(response.body)  # 配列
+      users.first  # 1件目を返す（見つからない場合はnil）
+    else
+      nil
+    end
   end
 
   private
@@ -513,6 +737,8 @@ puts user['name']  # => "山田太郎"
 | Version | Date | Changes |
 |---------|------|---------|
 | 0.1.0-beta | 2025-10-27 | 初版作成 |
+| 1.0.0 | 2025-10-28 | OpenAPI実装ガイド追加、正式版へ昇格 |
+| 1.0.1 | 2025-10-28 | 検索エンドポイント（/users）のレスポンスを常に配列形式に統一 |
 
 ---
 
