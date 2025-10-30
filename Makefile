@@ -1,4 +1,4 @@
-.PHONY: up down restart build rebuild exec logs web db mysql ps help
+.PHONY: up down restart build rebuild exec logs app db mysql ps help
 
 # 引数をキャプチャ
 ARGS := $(wordlist 2,$(words $(MAKECMDGOALS)),$(MAKECMDGOALS))
@@ -26,8 +26,8 @@ logs:
 	docker compose logs $(ARGS)
 
 # よく使うショートカット
-web:
-	docker compose exec -it web bash
+app:
+	docker compose exec -it app bash
 
 db:
 	docker compose exec -it db bash
@@ -45,9 +45,9 @@ help:
 	@echo "  make restart         - 再起動"
 	@echo "  make build           - イメージビルド"
 	@echo "  make rebuild         - リビルド（キャッシュなし）"
-	@echo "  make exec [ARGS]     - コンテナでコマンド実行（例: make exec web rails console）"
+	@echo "  make exec [ARGS]     - コンテナでコマンド実行（例: make exec app rails console）"
 	@echo "  make logs [ARGS]     - ログ表示（例: make logs -f hydra）"
-	@echo "  make web             - Webコンテナに入る"
+	@echo "  make app             - Appコンテナに入る"
 	@echo "  make db              - DBコンテナに入る"
 	@echo "  make mysql           - MySQL接続"
 	@echo "  make ps              - コンテナ一覧"

@@ -174,7 +174,7 @@ docker-compose logs -f
 docker-compose exec hydra hydra list oauth2-clients --endpoint http://localhost:4445
 
 # Railsコンソール
-docker-compose exec web bundle exec rails console
+docker-compose exec app bundle exec rails console
 
 # データベース接続
 docker-compose exec db mysql -u rails idp_development -prails_password

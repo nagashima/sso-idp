@@ -140,28 +140,28 @@ docker-compose down
 docker-compose logs -f [service_name]
 
 # コンテナ内シェル
-docker-compose exec web bash
+docker-compose exec app bash
 ```
 
 ### Rails操作
 ```bash
 # コンソール
-docker-compose exec web bundle exec rails console
+docker-compose exec app bundle exec rails console
 
 # マイグレーション
-docker-compose exec web bundle exec rails db:migrate
+docker-compose exec app bundle exec rails db:migrate
 
 # データベースリセット
-docker-compose exec web bundle exec rails db:reset
+docker-compose exec app bundle exec rails db:reset
 
 # テスト実行
-docker-compose exec web bundle exec rspec
+docker-compose exec app bundle exec rspec
 
 # その他のRailsコマンド
-docker-compose exec web bundle exec rails [command]
+docker-compose exec app bundle exec rails [command]
 ```
 
-**注意**: Railsはwebコンテナにクリーンインストールされており、ホスト上では動作しません。webコンテナ上では必ず`bundle exec`を付けて実行してください。
+**注意**: Railsはappコンテナにクリーンインストールされており、ホスト上では動作しません。appコンテナ上では必ず`bundle exec`を付けて実行してください。
 
 ### DB操作
 ```bash
@@ -225,7 +225,7 @@ https://localhost:4443/oauth2/auth?client_id={GENERATED_CLIENT_ID}&response_type
 curl -k -H "Cookie: your_session_cookie" https://localhost:4443/profile
 
 # 外部RP側でSSO実行（3回連続で実行し、動作ログを確認）
-# IdPログを確認: docker-compose logs -f web | grep "IdP ENTRY"
+# IdPログを確認: docker-compose logs -f app | grep "IdP ENTRY"
 ```
 
 ---
