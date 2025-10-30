@@ -43,9 +43,23 @@ IdPでSSO認証を行うためのテストユーザーを登録します。
 
 RPアプリケーションをIdPに登録し、OAuth2クライアント認証情報を取得します。
 
+#### 方法1: ホストOSから実行（シンプル）
+
 ```bash
 cd sso-idp
 ./scripts/register-client.sh "https://localhost:3443/auth/sso/callback" \
+  --first-party \
+  --cors-origin "https://localhost:4443,https://localhost:3443"
+```
+
+#### 方法2: appコンテナから実行（開発・AWS共通）
+
+```bash
+cd sso-idp
+
+# コンテナに入ってから実行
+docker-compose exec app bash
+./scripts/register-client-from-app.sh "https://localhost:3443/auth/sso/callback" \
   --first-party \
   --cors-origin "https://localhost:4443,https://localhost:3443"
 ```
@@ -57,6 +71,10 @@ cd sso-idp
 **オプション説明**:
 - `--first-party`: 信頼済みクライアント（同意画面をスキップ）
 - `--cors-origin`: CORS許可オリジン（複数指定可能）
+
+> **どちらを使うべきか**:
+> - **方法1**: 開発環境で手軽に使いたい場合（推奨）
+> - **方法2**: AWS環境でも同じ手順を使いたい場合、または開発環境でもコンテナ内で統一したい場合
 
 ### ステップ4: RP側の環境設定
 

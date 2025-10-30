@@ -87,7 +87,9 @@ LOGOUT_STRATEGY=local  # or 'global'
 
 ### RPクライアント登録
 
-#### **登録**
+RPクライアントを登録する方法は2つあります：
+
+#### **方法1: ホストOSから実行（開発環境専用）**
 
 > **Windows環境の場合**: Git Bash/WSL等では明示的に `bash` を指定してください
 > ```bash
@@ -107,13 +109,48 @@ LOGOUT_STRATEGY=local  # or 'global'
   --cors-origins "https://your-rp-domain.com,https://app.example.com"
 ```
 
-#### **登録例（ローカル開発環境）**
-RPが `https://localhost:3443` で動作している場合：
+**登録例（ローカル開発環境）**:
 ```bash
 ./scripts/register-client.sh "https://localhost:3443/auth/sso/callback" \
   --first-party \
   --cors-origin "https://localhost:4443,https://localhost:3443"
 ```
+
+#### **方法2: appコンテナ内から実行（開発・AWS環境共通）**
+
+**開発環境での実行**:
+```bash
+# パターンA: コンテナに入ってから実行
+docker-compose exec app bash
+./scripts/register-client-from-app.sh "https://localhost:3443/auth/sso/callback" \
+  --first-party \
+  --cors-origin "https://localhost:4443,https://localhost:3443"
+
+# パターンB: ホストOSから1行で実行
+docker-compose exec app ./scripts/register-client-from-app.sh \
+  "https://localhost:3443/auth/sso/callback" \
+  --first-party \
+  --cors-origin "https://localhost:4443,https://localhost:3443"
+```
+
+**AWS ECS環境での実行**:
+```bash
+# 1. ECSコンテナにログイン
+aws ecs execute-command \
+  --cluster my-cluster \
+  --task <task-id> \
+  --container app \
+  --interactive \
+  --command "/bin/bash"
+
+# 2. コンテナ内でスクリプト実行
+bash-5.1$ ./scripts/register-client-from-app.sh "https://rp.example.com/callback" \
+  --first-party
+```
+
+> **方法1と方法2の違い**:
+> - **方法1**: docker-composeコマンドを使用（開発環境専用、シンプル）
+> - **方法2**: Hydra Admin APIを直接呼び出し（開発・AWS環境で共通利用可能）
 
 #### **登録結果の確認**
 ```bash
