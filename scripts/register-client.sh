@@ -89,13 +89,49 @@ if [ $? -eq 0 ]; then
     CLIENT_ID=$(echo "$CLIENT_JSON" | sed -n 's/.*"client_id":"\([^"]*\)".*/\1/p')
     CLIENT_SECRET=$(echo "$CLIENT_JSON" | sed -n 's/.*"client_secret":"\([^"]*\)".*/\1/p')
 
-    echo "✅ 登録完了!"
+    # 見やすく整形して出力
+    cat << EOF
+
+━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+✅ OAuth2 Client 登録完了
+━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+
+Client Name: $CLIENT_NAME
+Callback URL: $REDIRECT_URI
+First Party: $([ "$FIRST_PARTY" = true ] && echo "Yes" || echo "No")
+
+━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+📋 RP側に送付する情報（コピーしてSlack/メール等で共有）
+━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+
+CLIENT_ID=$CLIENT_ID
+CLIENT_SECRET=$CLIENT_SECRET
+
+━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+📝 RP側の .env.local 設定内容
+━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+
+OAUTH_CLIENT_ID=$CLIENT_ID
+OAUTH_CLIENT_SECRET=$CLIENT_SECRET
+
+━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+
+EOF
+
+    # オプション: ファイルに保存
+    mkdir -p tmp
+    OUTPUT_FILE="tmp/client-${CLIENT_NAME}.env"
+    cat > "$OUTPUT_FILE" << EOF
+# OAuth2 Client Credentials for $CLIENT_NAME
+# Generated: $(date)
+# Callback URL: $REDIRECT_URI
+
+OAUTH_CLIENT_ID=$CLIENT_ID
+OAUTH_CLIENT_SECRET=$CLIENT_SECRET
+EOF
+
+    echo "💾 設定ファイルを保存しました: $OUTPUT_FILE"
     echo ""
-    echo "🔑 RP設定用:"
-    echo "OAUTH2_CLIENT_ID=$CLIENT_ID"
-    echo "OAUTH2_CLIENT_SECRET=$CLIENT_SECRET"
-    echo "OAUTH2_ISSUER_URL=http://localhost:4444"
-    echo "OAUTH2_REDIRECT_URI=$REDIRECT_URI"
 else
     echo "❌ 登録失敗"
     exit 1
