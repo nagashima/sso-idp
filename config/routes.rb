@@ -38,16 +38,35 @@ Rails.application.routes.draw do
   # OAuth2 / OpenID Connect関連ルート（SSO機能）
   namespace :sso do
     get 'sign_in', to: 'sign_in#login'
-    post 'sign_in', to: 'sign_in#authenticate'           # 第1段階認証
-    get 'sign_in/verify', to: 'sign_in#verification_form' # 第2段階認証フォーム
-    post 'sign_in/verify', to: 'sign_in#verify'           # 第2段階認証処理
+    post 'sign_in', to: 'sign_in#authenticate'           # 第1段階認証（旧）
+    get 'sign_in/verify', to: 'sign_in#verification_form' # 第2段階認証フォーム（旧）
+    post 'sign_in/verify', to: 'sign_in#verify'           # 第2段階認証処理（旧）
     get 'consent', to: 'consent#consent'
     post 'consent', to: 'consent#accept'
     get 'sign_out', to: 'sign_out#logout'                # Hydraからのログアウト要求
     post 'sign_out', to: 'sign_out#logout'               # 互換性のため
+
+    # API
+    namespace :api do
+      namespace :sign_in do
+        post 'authenticate', to: 'authenticate#create'
+        post 'verify', to: 'verify#create'
+      end
+    end
   end
   
-  # API
+  # Users機能（通常WEB）
+  namespace :users do
+    # API
+    namespace :api do
+      namespace :sign_in do
+        post 'authenticate', to: 'authenticate#create'
+        post 'verify', to: 'verify#create'
+      end
+    end
+  end
+
+  # API（外部提供）
   namespace :api do
     namespace :v1 do
       get 'user_info', to: 'user_info#show'
