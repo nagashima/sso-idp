@@ -37,3 +37,6 @@ oidc:
 
 oauth2:
   expose_internal_errors: true
+
+ttl:
+  login_consent_request: $TTL_LOGIN_CONSENT_REQUEST  # .envで管理（デフォルト: 30m）

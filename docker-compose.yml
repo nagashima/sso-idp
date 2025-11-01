@@ -100,10 +100,11 @@ services:
     environment:
       - DSN=${HYDRA_DSN}
       - URLS_SELF_ISSUER=${HYDRA_PUBLIC_URL}
-      - URLS_LOGIN=${HYDRA_PUBLIC_URL}/auth/login
-      - URLS_CONSENT=${HYDRA_PUBLIC_URL}/auth/consent
-      - URLS_LOGOUT=${HYDRA_PUBLIC_URL}/auth/logout
+      - URLS_LOGIN=${HYDRA_PUBLIC_URL}/sso/sign_in
+      - URLS_CONSENT=${HYDRA_PUBLIC_URL}/sso/consent
+      - URLS_LOGOUT=${HYDRA_PUBLIC_URL}/sso/sign_out
       - URLS_POST_LOGOUT_REDIRECT=${HYDRA_PUBLIC_URL}/
+      - TTL_LOGIN_CONSENT_REQUEST=${HYDRA_LOGIN_CONSENT_TTL_MINUTES:-30}m
     ports:
       - "4444:4444" # Public API
       # Admin API (4445) は内部通信のみ - 外部公開禁止

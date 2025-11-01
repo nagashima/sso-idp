@@ -35,16 +35,16 @@ Rails.application.routes.draw do
     mount LetterOpenerWeb::Engine, at: "/letter_opener"
   end
   
-  # OAuth2 / OpenID Connect関連ルート
-  namespace :auth do
-    get 'login', to: 'login#login'
-    post 'login', to: 'login#authenticate'           # 第1段階認証
-    get 'login/verify', to: 'login#verification_form' # 第2段階認証フォーム
-    post 'login/verify', to: 'login#verify'           # 第2段階認証処理
+  # OAuth2 / OpenID Connect関連ルート（SSO機能）
+  namespace :sso do
+    get 'sign_in', to: 'sign_in#login'
+    post 'sign_in', to: 'sign_in#authenticate'           # 第1段階認証
+    get 'sign_in/verify', to: 'sign_in#verification_form' # 第2段階認証フォーム
+    post 'sign_in/verify', to: 'sign_in#verify'           # 第2段階認証処理
     get 'consent', to: 'consent#consent'
     post 'consent', to: 'consent#accept'
-    get 'logout', to: 'logout#logout'                # Hydraからのログアウト要求
-    post 'logout', to: 'logout#logout'               # 互換性のため
+    get 'sign_out', to: 'sign_out#logout'                # Hydraからのログアウト要求
+    post 'sign_out', to: 'sign_out#logout'               # 互換性のため
   end
   
   # API

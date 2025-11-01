@@ -333,7 +333,7 @@ location / {
    - React SPAマウント
    - Step 1: メールアドレス入力画面表示
    ↓
-2. POST /users/api/sign_up/send_email
+2. POST /users/api/sign_up/email
    - SignupTicket作成（token発行）
    - 確認メール送信
    - Step 2: 「メールを確認してください」画面表示
@@ -345,12 +345,12 @@ location / {
    - Step 3へリダイレクト: /users/sign_up/password?token=xxx
    ↓
 4. Step 3: パスワード入力
-   POST /users/api/sign_up/save_password
+   POST /users/api/sign_up/password
    - パスワードをValkeyに保存: signup:#{token}:password
    - Step 4へ遷移
    ↓
 5. Step 4: 属性入力（名前、生年月日等）
-   POST /users/api/sign_up/save_profile
+   POST /users/api/sign_up/profile
    - 属性をValkeyに保存: signup:#{token}:profile
    - Step 5へ遷移
    ↓
@@ -392,7 +392,7 @@ GET /sso/sign_up?login_challenge=xyz123
 1. React SPAマウント（login_challengeをmeta tagで渡す）
    Step 1: メールアドレス入力画面
    ↓
-2. POST /users/api/sign_up/send_email
+2. POST /users/api/sign_up/email
    body: { email, login_challenge }
    - SignupTicket作成
    - Valkeyに保存: signup:#{token}:login_challenge = xyz123
@@ -1899,7 +1899,48 @@ config.cache_store = :redis_cache_store, {
 }
 ```
 
-### 4. Rails Routes
+### 4. タイムアウト設定の集約（Phase 0リファクタリング）
+
+**目的**：各種タイムアウト設定を.envで一元管理し、保守性を向上
+
+**対象設定**：
+
+| 設定項目 | 環境変数 | 値 | 用途 |
+|---------|---------|-----|------|
+| JWT有効期限 | `JWT_EXPIRATION_MINUTES` | 30 | ✅ 既存 |
+| Cookie有効期限 | 同上 | 30 | ✅ Phase 0で追加済み |
+| Hydra login_consent TTL | `HYDRA_LOGIN_CONSENT_TTL_MINUTES` | 30 | ✅ Phase 0で.env化 |
+| Valkeyキャッシュ有効期限 | ハードコード | 24時間 | 将来検討 |
+
+**実装方法（Hydra TTL）**：
+
+```bash
+# .env
+HYDRA_LOGIN_CONSENT_TTL_MINUTES=30
+```
+
+```yaml
+# docker-compose.yml
+services:
+  hydra:
+    environment:
+      - TTL_LOGIN_CONSENT_REQUEST=${HYDRA_LOGIN_CONSENT_TTL_MINUTES:-30}m
+```
+
+```yaml
+# docker/hydra/hydra.yml
+ttl:
+  login_consent_request: $TTL_LOGIN_CONSENT_REQUEST
+```
+
+**メリット**：
+- 設定の一元管理（.envファイル1箇所で変更可能）
+- 環境ごとの設定切り替えが容易（.env.local で上書き）
+- 設定値の整合性確保（JWT、Cookie、Hydraチャレンジが全て30分）
+
+---
+
+### 5. Rails Routes
 
 ```ruby
 # config/routes.rb

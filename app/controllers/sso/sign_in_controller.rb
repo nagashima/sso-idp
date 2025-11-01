@@ -1,4 +1,4 @@
-class Auth::LoginController < Sessions::LoginController
+class Sso::SignInController < Sessions::LoginController
   # OAuth2フローでは既ログイン時のリダイレクトをスキップ
   skip_before_action :redirect_if_logged_in, only: [:login, :authenticate, :verification_form, :verify]
 
@@ -75,14 +75,14 @@ class Auth::LoginController < Sessions::LoginController
   # 親クラス: Sessions::LoginController#authentication_success_redirect_path
   # 呼び出し元: Sessions::LoginController#authenticate (POST /oauth2/login)
   def authentication_success_redirect_path
-    auth_login_verify_path
+    sso_sign_in_verify_path
   end
 
   # OAuth2のフォームURL設定をオーバーライド
   # 親クラス: Sessions::LoginController#set_form_urls
-  # 呼び出し元: Sessions::LoginController#handle_authentication_error (POST /oauth2/login エラー時)
+  # 呼び出し元: Sessions::LoginController#handle_authentication_error (POST /sso/sign_in エラー時)
   def set_form_urls
-    @login_form_url = auth_login_path
+    @login_form_url = sso_sign_in_path
   end
 
   private
@@ -118,7 +118,7 @@ class Auth::LoginController < Sessions::LoginController
   end
 
   def set_auth_verify_form_url
-    @verify_form_url = auth_login_verify_path
+    @verify_form_url = sso_sign_in_verify_path
   end
 
   def redirect_with_error(message)

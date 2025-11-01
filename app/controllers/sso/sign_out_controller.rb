@@ -1,5 +1,5 @@
-class Auth::LogoutController < ApplicationController
-  # GET /oauth2/logout?logout_challenge=... - Hydraからのログアウト要求
+class Sso::SignOutController < ApplicationController
+  # GET /sso/sign_out?logout_challenge=... - Hydraからのログアウト要求
   def logout
     logout_challenge = params[:logout_challenge]
 

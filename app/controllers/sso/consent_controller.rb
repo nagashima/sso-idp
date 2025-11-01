@@ -1,4 +1,4 @@
-class Auth::ConsentController < ApplicationController
+class Sso::ConsentController < ApplicationController
   before_action :require_login
 
   def consent

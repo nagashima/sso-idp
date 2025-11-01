@@ -62,7 +62,8 @@ class ApplicationController < ActionController::Base
       value: jwt_token,
       httponly: true,
       secure: secure_flag,
-      same_site: :lax
+      same_site: :lax,
+      expires: JwtConfig::TOKEN_EXPIRATION_MINUTES.minutes.from_now
     }
   end
 
