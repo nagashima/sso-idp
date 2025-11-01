@@ -1,5 +1,31 @@
 class AuthenticationLoggerService
   class << self
+    # 会員登録ログ記録（JSON形式）
+    def log_user_registration(user, request, login_method: 'normal')
+      Rails.logger.info({
+        event: 'user_registration',
+        user_id: user.id,
+        email: user.email,
+        login_method: login_method,
+        ip_address: extract_ip_address(request),
+        user_agent: request.user_agent,
+        timestamp: Time.current.iso8601
+      }.to_json)
+    end
+
+    # ログインログ記録（JSON形式）
+    def log_login(user, request, login_method: 'normal')
+      Rails.logger.info({
+        event: 'user_login',
+        user_id: user.id,
+        email: user.email,
+        login_method: login_method,
+        ip_address: extract_ip_address(request),
+        user_agent: request.user_agent,
+        timestamp: Time.current.iso8601
+      }.to_json)
+    end
+
     # OAuth2ログイン開始
     def log_oauth2_login_start(request, client_id: nil, login_challenge: nil)
       create_log(
