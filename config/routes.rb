@@ -11,6 +11,9 @@ Rails.application.routes.draw do
 
   # Root
   root "home#index"
+
+  # Profile
+  get 'profile', to: 'profile#show'
   
   # Authentication Routes
   get '/login', to: 'sessions/login#login'
@@ -37,10 +40,14 @@ Rails.application.routes.draw do
   
   # OAuth2 / OpenID Connect関連ルート（SSO機能）
   namespace :sso do
-    get 'sign_in', to: 'sign_in#login'
-    post 'sign_in', to: 'sign_in#authenticate'           # 第1段階認証（旧）
-    get 'sign_in/verify', to: 'sign_in#verification_form' # 第2段階認証フォーム（旧）
-    post 'sign_in/verify', to: 'sign_in#verify'           # 第2段階認証処理（旧）
+    # ページ（エントリポイント）
+    get 'sign_in', to: 'sign_in#index'
+
+    # 旧実装（削除予定）
+    # post 'sign_in', to: 'sign_in#authenticate'           # 第1段階認証（旧）
+    # get 'sign_in/verify', to: 'sign_in#verification_form' # 第2段階認証フォーム（旧）
+    # post 'sign_in/verify', to: 'sign_in#verify'           # 第2段階認証処理（旧）
+
     get 'consent', to: 'consent#consent'
     post 'consent', to: 'consent#accept'
     get 'sign_out', to: 'sign_out#logout'                # Hydraからのログアウト要求
@@ -57,6 +64,9 @@ Rails.application.routes.draw do
   
   # Users機能（通常WEB）
   namespace :users do
+    # ページ（エントリポイント）
+    get 'sign_in', to: 'sign_in#index'
+
     # API
     namespace :api do
       namespace :sign_in do

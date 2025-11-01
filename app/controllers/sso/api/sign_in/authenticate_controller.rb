@@ -76,6 +76,11 @@ module Sso
             response_data[:login_challenge] = login_challenge
           end
 
+          # 開発環境のみ：認証コードを表示（デバッグ用）
+          if Rails.env.development?
+            response_data[:debug_auth_code] = user.auth_code
+          end
+
           # レスポンス返却
           render json: response_data
         end

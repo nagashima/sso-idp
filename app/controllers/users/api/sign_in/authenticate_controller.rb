@@ -68,6 +68,11 @@ module Users
             expires_at: 10.minutes.from_now.iso8601
           }
 
+          # 開発環境のみ：認証コードを表示（デバッグ用）
+          if Rails.env.development?
+            response_data[:debug_auth_code] = user.auth_code
+          end
+
           # レスポンス返却
           render json: response_data
         end
