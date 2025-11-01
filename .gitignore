@@ -50,3 +50,6 @@ node_modules
 
 # RSpec
 spec/examples.txt
+
+# Ridgepole: Ignore Rails auto-generated schema.rb (using db/schemas/ instead)
+/db/schema.rb

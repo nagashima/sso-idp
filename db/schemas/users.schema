@@ -1,0 +1,22 @@
+# -*- mode: ruby -*-
+# vi: set ft=ruby :
+create_table "users", charset: "utf8mb4", collation: "utf8mb4_unicode_ci", force: :cascade do |t|
+  t.string "email"
+  t.string "name"
+  t.date "birth_date"
+  t.text "address"
+  t.string "phone_number"
+  t.string "password_digest"
+  t.string "auth_code"
+  t.datetime "auth_code_expires_at"
+  t.datetime "activated_at"
+  t.string "activation_token"
+  t.datetime "activation_expires_at"
+  t.datetime "created_at", null: false
+  t.datetime "updated_at", null: false
+  t.datetime "last_login_at"
+  t.index ["activation_token"], name: "index_users_on_activation_token", unique: true
+  t.index ["email"], name: "index_users_on_email", unique: true
+end
+
+add_foreign_key "authentication_logs", "users"
