@@ -11,7 +11,7 @@ class Sso::SignInController < Sessions::LoginController
     return redirect_with_error('不正なアクセスです') if login_challenge.blank?
 
     begin
-      login_request = HydraAdminClient.get_login_request(login_challenge)
+      login_request = HydraClient.get_login_request(login_challenge)
       store_login_challenge
 
       # 認証ログ: OAuth2ログイン開始
@@ -101,7 +101,7 @@ class Sso::SignInController < Sessions::LoginController
   end
 
   def auto_accept_login
-    response = HydraAdminClient.accept_login_request(login_challenge, current_user.id.to_s)
+    response = HydraClient.accept_login_request(login_challenge, current_user.id.to_s)
     redirect_to response['redirect_to']
   end
 
@@ -111,7 +111,7 @@ class Sso::SignInController < Sessions::LoginController
   end
 
   def accept_hydra_login_request(user)
-    response = HydraAdminClient.accept_login_request(@login_challenge, user.id.to_s)
+    response = HydraClient.accept_login_request(@login_challenge, user.id.to_s)
     redirect_to response['redirect_to']
   rescue HydraError => e
     handle_hydra_error(e, 'ログイン処理中にエラーが発生しました')

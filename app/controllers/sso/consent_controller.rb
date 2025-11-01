@@ -11,8 +11,8 @@ class Sso::ConsentController < ApplicationController
     end
 
     begin
-      # 2. HydraAdminClientで同意要求詳細を取得
-      consent_request = HydraAdminClient.get_consent_request(consent_challenge)
+      # 2. HydraClientで同意要求詳細を取得
+      consent_request = HydraClient.get_consent_request(consent_challenge)
 
 
       # 3. 自動同意の判定
@@ -41,7 +41,7 @@ class Sso::ConsentController < ApplicationController
 
     begin
       # 同意要求詳細を再取得
-      consent_request = HydraAdminClient.get_consent_request(consent_challenge)
+      consent_request = HydraClient.get_consent_request(consent_challenge)
 
       # ユーザーが選択したスコープ（今回は全て許可）
       granted_scopes = consent_request['requested_scope'] || []
@@ -59,7 +59,7 @@ class Sso::ConsentController < ApplicationController
       )
 
       # 同意チャレンジを受け入れ
-      response = HydraAdminClient.accept_consent_request(
+      response = HydraClient.accept_consent_request(
         consent_challenge,
         granted_scopes,
         user_claims
@@ -118,7 +118,7 @@ class Sso::ConsentController < ApplicationController
       consent_challenge: consent_challenge
     )
 
-    response = HydraAdminClient.accept_consent_request(
+    response = HydraClient.accept_consent_request(
       consent_challenge,
       granted_scopes,
       user_claims

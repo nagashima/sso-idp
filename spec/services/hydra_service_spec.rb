@@ -12,7 +12,7 @@ RSpec.describe HydraService, type: :service do
       let(:hydra_response) { { 'redirect_to' => redirect_url } }
 
       before do
-        allow(HydraAdminClient).to receive(:accept_login_request)
+        allow(HydraClient).to receive(:accept_login_request)
           .with(challenge, user.id.to_s)
           .and_return(hydra_response)
       end
@@ -22,8 +22,8 @@ RSpec.describe HydraService, type: :service do
         expect(result).to eq(redirect_url)
       end
 
-      it 'HydraAdminClientが呼ばれる' do
-        expect(HydraAdminClient).to receive(:accept_login_request)
+      it 'HydraClientが呼ばれる' do
+        expect(HydraClient).to receive(:accept_login_request)
           .with(challenge, user.id.to_s)
         HydraService.accept_login_request(challenge, user.id)
       end
@@ -31,7 +31,7 @@ RSpec.describe HydraService, type: :service do
 
     context '異常系: HydraError発生' do
       before do
-        allow(HydraAdminClient).to receive(:accept_login_request)
+        allow(HydraClient).to receive(:accept_login_request)
           .and_raise(HydraError, 'Challenge expired')
       end
 
@@ -51,7 +51,7 @@ RSpec.describe HydraService, type: :service do
 
     context '異常系: 予期しない例外' do
       before do
-        allow(HydraAdminClient).to receive(:accept_login_request)
+        allow(HydraClient).to receive(:accept_login_request)
           .and_raise(StandardError, 'Network error')
       end
 
@@ -85,7 +85,7 @@ RSpec.describe HydraService, type: :service do
       end
 
       before do
-        allow(HydraAdminClient).to receive(:accept_consent_request)
+        allow(HydraClient).to receive(:accept_consent_request)
           .with(challenge, scopes, expected_id_token)
           .and_return(hydra_response)
       end
@@ -95,8 +95,8 @@ RSpec.describe HydraService, type: :service do
         expect(result).to eq(redirect_url)
       end
 
-      it 'HydraAdminClientが正しい引数で呼ばれる' do
-        expect(HydraAdminClient).to receive(:accept_consent_request)
+      it 'HydraClientが正しい引数で呼ばれる' do
+        expect(HydraClient).to receive(:accept_consent_request)
           .with(challenge, scopes, expected_id_token)
         HydraService.accept_consent_request(challenge, user, scopes)
       end
@@ -104,7 +104,7 @@ RSpec.describe HydraService, type: :service do
 
     context '異常系: HydraError発生' do
       before do
-        allow(HydraAdminClient).to receive(:accept_consent_request)
+        allow(HydraClient).to receive(:accept_consent_request)
           .and_raise(HydraError, 'Invalid consent challenge')
       end
 
@@ -124,7 +124,7 @@ RSpec.describe HydraService, type: :service do
 
     context '異常系: 予期しない例外' do
       before do
-        allow(HydraAdminClient).to receive(:accept_consent_request)
+        allow(HydraClient).to receive(:accept_consent_request)
           .and_raise(StandardError, 'Connection timeout')
       end
 

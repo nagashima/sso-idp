@@ -1,11 +1,12 @@
 # SSOフロー中の会員登録機能 最終仕様書
 
-**Version**: 1.3.2
+**Version**: 1.3.3
 **作成日**: 2025-10-31
 **最終更新**: 2025-11-01
 **Status**: 最終版（実装準備完了）
 
 **変更履歴**:
+- v1.3.3: HTTP通信層の命名を統一（HydraAdminClient→HydraClient）
 - v1.3.2: Service命名を統一（HydraClientService→HydraService）
 - v1.3.1: URL/アクション名をシンプルに統一（email_verification→email, save_password→password, registration→complete）
 - v1.3.0: Rails設計思想を追加（Service層設計原則、API URL設計思想、Controller設計パターン、Service層詳細設計、テストピラミッド）
@@ -410,7 +411,7 @@ GET /sso/sign_up?login_challenge=xyz123
    - SignupTicketレコード削除
 
    ★ login_challengeがある場合 ★
-   - HydraAdminClient.accept_login_request(login_challenge, user.id)
+   - HydraClient.accept_login_request(login_challenge, user.id)
    - redirect_to: Hydraのリダイレクト先URL
    ↓
 【Hydra】consent_challenge発行
@@ -825,7 +826,7 @@ Hydra Admin API連携を担当。
 # app/services/hydra_service.rb
 class HydraService
   def self.accept_login_request(challenge, user_id, remember: true, remember_for: 3600)
-    response = HydraAdminClient.accept_login_request(
+    response = HydraClient.accept_login_request(
       challenge,
       user_id.to_s,
       remember: remember,
@@ -838,7 +839,7 @@ class HydraService
   end
 
   def self.accept_consent_request(challenge, user, scopes)
-    response = HydraAdminClient.accept_consent_request(
+    response = HydraClient.accept_consent_request(
       challenge,
       user.id.to_s,
       scopes: scopes,
@@ -1052,7 +1053,7 @@ class Sso::SignUpController < Users::SignUpController
   private
 
   def accept_hydra_login_request(challenge, user)
-    response = HydraAdminClient.accept_login_request(
+    response = HydraClient.accept_login_request(
       challenge,
       user.id.to_s,
       remember: true,
@@ -2483,7 +2484,7 @@ end
 RSpec.describe 'Hydra OAuth2 Flow', type: :request do
   before do
     # Hydra Admin APIをモック
-    allow(HydraAdminClient).to receive(:accept_login_request)
+    allow(HydraClient).to receive(:accept_login_request)
       .and_return({ 'redirect_to' => 'https://idp.example.com/sso/consent?consent_challenge=...' })
   end
 
@@ -2510,7 +2511,7 @@ RSpec.describe 'Hydra OAuth2 Flow', type: :request do
     json = JSON.parse(response.body)
 
     # Hydra accept_login_requestが呼ばれた確認
-    expect(HydraAdminClient).to have_received(:accept_login_request)
+    expect(HydraClient).to have_received(:accept_login_request)
       .with('test_challenge', anything)
 
     # リダイレクト先がHydra

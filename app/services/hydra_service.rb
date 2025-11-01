@@ -1,7 +1,7 @@
 # frozen_string_literal: true
 
 # HydraService: Hydra Admin API連携
-# HydraAdminClientをラップし、Serviceレイヤーのインターフェースを提供
+# HydraClientをラップし、Serviceレイヤーのインターフェースを提供
 class HydraService
   # ログイン承認
   #
@@ -12,7 +12,7 @@ class HydraService
   # @return [String] リダイレクト先URL
   # @raise [HydraError] Hydra API呼び出しエラー
   def self.accept_login_request(challenge, user_id, remember: true, remember_for: 3600)
-    response = HydraAdminClient.accept_login_request(challenge, user_id.to_s)
+    response = HydraClient.accept_login_request(challenge, user_id.to_s)
     response['redirect_to']
   rescue HydraError => e
     Rails.logger.error "HydraService.accept_login_request failed: #{e.message}"
@@ -36,7 +36,7 @@ class HydraService
       name: user.name
     }
 
-    response = HydraAdminClient.accept_consent_request(challenge, scopes, id_token_claims)
+    response = HydraClient.accept_consent_request(challenge, scopes, id_token_claims)
     response['redirect_to']
   rescue HydraError => e
     Rails.logger.error "HydraService.accept_consent_request failed: #{e.message}"
