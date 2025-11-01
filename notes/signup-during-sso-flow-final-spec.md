@@ -1,11 +1,12 @@
 # SSOフロー中の会員登録機能 最終仕様書
 
-**Version**: 1.3.1
+**Version**: 1.3.2
 **作成日**: 2025-10-31
 **最終更新**: 2025-11-01
 **Status**: 最終版（実装準備完了）
 
 **変更履歴**:
+- v1.3.2: Service命名を統一（HydraClientService→HydraService）
 - v1.3.1: URL/アクション名をシンプルに統一（email_verification→email, save_password→password, registration→complete）
 - v1.3.0: Rails設計思想を追加（Service層設計原則、API URL設計思想、Controller設計パターン、Service層詳細設計、テストピラミッド）
 - v1.2.0: バリデーション戦略追加（Form Objects + React Hook Form + Zod）
@@ -160,7 +161,7 @@ IdPで以下2つの機能を実現する：
 
 **機能単位のService（特殊パターン）**：
 - `CacheService`: Valkeyキャッシュ操作
-- `HydraClientService`: Hydra Admin API連携
+- `HydraService`: Hydra Admin API連携
 - `AuthenticationLoggerService`: 認証ログ記録
 - `SignupService`: 登録フロー統括（複数モデル横断）
 
@@ -812,7 +813,7 @@ end
 
 ---
 
-### HydraClientService（機能単位）
+### HydraService（機能単位）
 
 Hydra Admin API連携を担当。
 
@@ -821,8 +822,8 @@ Hydra Admin API連携を担当。
 - `accept_consent_request(challenge, scopes)` - 同意承認
 
 ```ruby
-# app/services/hydra_client_service.rb
-class HydraClientService
+# app/services/hydra_service.rb
+class HydraService
   def self.accept_login_request(challenge, user_id, remember: true, remember_for: 3600)
     response = HydraAdminClient.accept_login_request(
       challenge,
@@ -832,7 +833,7 @@ class HydraClientService
     )
     response['redirect_to']
   rescue => e
-    Rails.logger.error "HydraClientService.accept_login_request failed: #{e.message}"
+    Rails.logger.error "HydraService.accept_login_request failed: #{e.message}"
     raise HydraError, e.message
   end
 
@@ -1627,7 +1628,7 @@ export const PasswordStep = () => {
      - `create_from_signup`, `update_profile`
    - [ ] SignupService実装（機能単位：登録フロー統括）
      - `complete_registration`（Result Objectパターン）
-   - [ ] HydraClientService実装（機能単位：Hydra連携）
+   - [ ] HydraService実装（機能単位：Hydra連携）
      - `accept_login_request`, `accept_consent_request`
    - [ ] AuthenticationLoggerService実装（機能単位：認証ログ記録）
      - `log_user_registration`, `log_login`

@@ -2,7 +2,7 @@
 
 require 'rails_helper'
 
-RSpec.describe HydraClientService, type: :service do
+RSpec.describe HydraService, type: :service do
   let(:user) { create(:user, name: 'Test User', email: 'test@example.com') }
   let(:challenge) { 'test_challenge_12345' }
 
@@ -18,14 +18,14 @@ RSpec.describe HydraClientService, type: :service do
       end
 
       it 'redirect_to URLが返される' do
-        result = HydraClientService.accept_login_request(challenge, user.id)
+        result = HydraService.accept_login_request(challenge, user.id)
         expect(result).to eq(redirect_url)
       end
 
       it 'HydraAdminClientが呼ばれる' do
         expect(HydraAdminClient).to receive(:accept_login_request)
           .with(challenge, user.id.to_s)
-        HydraClientService.accept_login_request(challenge, user.id)
+        HydraService.accept_login_request(challenge, user.id)
       end
     end
 
@@ -37,14 +37,14 @@ RSpec.describe HydraClientService, type: :service do
 
       it 'HydraErrorがraiseされる' do
         expect {
-          HydraClientService.accept_login_request(challenge, user.id)
+          HydraService.accept_login_request(challenge, user.id)
         }.to raise_error(HydraError, 'Challenge expired')
       end
 
       it 'エラーログが記録される' do
-        expect(Rails.logger).to receive(:error).with(/HydraClientService.accept_login_request failed/)
+        expect(Rails.logger).to receive(:error).with(/HydraService.accept_login_request failed/)
         expect {
-          HydraClientService.accept_login_request(challenge, user.id)
+          HydraService.accept_login_request(challenge, user.id)
         }.to raise_error(HydraError)
       end
     end
@@ -57,14 +57,14 @@ RSpec.describe HydraClientService, type: :service do
 
       it 'HydraErrorに変換される' do
         expect {
-          HydraClientService.accept_login_request(challenge, user.id)
+          HydraService.accept_login_request(challenge, user.id)
         }.to raise_error(HydraError, 'Network error')
       end
 
       it 'エラーログが記録される' do
         expect(Rails.logger).to receive(:error).with(/unexpected error/)
         expect {
-          HydraClientService.accept_login_request(challenge, user.id)
+          HydraService.accept_login_request(challenge, user.id)
         }.to raise_error(HydraError)
       end
     end
@@ -91,14 +91,14 @@ RSpec.describe HydraClientService, type: :service do
       end
 
       it 'redirect_to URLが返される' do
-        result = HydraClientService.accept_consent_request(challenge, user, scopes)
+        result = HydraService.accept_consent_request(challenge, user, scopes)
         expect(result).to eq(redirect_url)
       end
 
       it 'HydraAdminClientが正しい引数で呼ばれる' do
         expect(HydraAdminClient).to receive(:accept_consent_request)
           .with(challenge, scopes, expected_id_token)
-        HydraClientService.accept_consent_request(challenge, user, scopes)
+        HydraService.accept_consent_request(challenge, user, scopes)
       end
     end
 
@@ -110,14 +110,14 @@ RSpec.describe HydraClientService, type: :service do
 
       it 'HydraErrorがraiseされる' do
         expect {
-          HydraClientService.accept_consent_request(challenge, user, scopes)
+          HydraService.accept_consent_request(challenge, user, scopes)
         }.to raise_error(HydraError, 'Invalid consent challenge')
       end
 
       it 'エラーログが記録される' do
-        expect(Rails.logger).to receive(:error).with(/HydraClientService.accept_consent_request failed/)
+        expect(Rails.logger).to receive(:error).with(/HydraService.accept_consent_request failed/)
         expect {
-          HydraClientService.accept_consent_request(challenge, user, scopes)
+          HydraService.accept_consent_request(challenge, user, scopes)
         }.to raise_error(HydraError)
       end
     end
@@ -130,14 +130,14 @@ RSpec.describe HydraClientService, type: :service do
 
       it 'HydraErrorに変換される' do
         expect {
-          HydraClientService.accept_consent_request(challenge, user, scopes)
+          HydraService.accept_consent_request(challenge, user, scopes)
         }.to raise_error(HydraError, 'Connection timeout')
       end
 
       it 'エラーログが記録される' do
         expect(Rails.logger).to receive(:error).with(/unexpected error/)
         expect {
-          HydraClientService.accept_consent_request(challenge, user, scopes)
+          HydraService.accept_consent_request(challenge, user, scopes)
         }.to raise_error(HydraError)
       end
     end
