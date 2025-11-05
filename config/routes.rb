@@ -39,6 +39,7 @@ Rails.application.routes.draw do
   # Development tools
   if Rails.env.development?
     mount LetterOpenerWeb::Engine, at: "/letter_opener"
+    get 'test-react', to: 'test_react#index'
   end
   
   # OAuth2 / OpenID Connect関連ルート（SSO機能）
