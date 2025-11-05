@@ -21,6 +21,11 @@
       </div>
 
       <div class="border-b border-gray-200 pb-4">
+        <h2 class="text-sm font-medium text-gray-500">住所</h2>
+        <p class="mt-1 text-lg text-gray-900"><%= @user.address || '未設定' %></p>
+      </div>
+
+      <div class="border-b border-gray-200 pb-4">
         <h2 class="text-sm font-medium text-gray-500">アカウント状態</h2>
         <p class="mt-1">
           <% if @user.activated? %>
