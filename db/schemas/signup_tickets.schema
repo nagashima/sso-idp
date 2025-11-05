@@ -5,7 +5,7 @@ create_table "signup_tickets", charset: "utf8mb4", collation: "utf8mb4_unicode_c
   t.string "token", null: false
   t.datetime "expires_at", null: false
   t.datetime "confirmed_at"
-  t.string "login_challenge"
+  t.text "login_challenge"
   t.datetime "created_at", null: false
   t.datetime "updated_at", null: false
   t.index ["email"], name: "index_signup_tickets_on_email"

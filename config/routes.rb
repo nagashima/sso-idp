@@ -14,6 +14,9 @@ Rails.application.routes.draw do
 
   # Profile
   get 'profile', to: 'profile#show'
+
+  # Email Verification (共通エンドポイント)
+  get 'verify_email/:token', to: 'verify_email#verify', as: 'verify_email'
   
   # Authentication Routes
   get '/login', to: 'sessions/login#login'
@@ -42,6 +45,7 @@ Rails.application.routes.draw do
   namespace :sso do
     # ページ（エントリポイント）
     get 'sign_in', to: 'sign_in#index'
+    get 'sign_up', to: 'sign_up#index'
 
     # 旧実装（削除予定）
     # post 'sign_in', to: 'sign_in#authenticate'           # 第1段階認証（旧）
@@ -59,6 +63,12 @@ Rails.application.routes.draw do
         post 'authenticate', to: 'authenticate#create'
         post 'verify', to: 'verify#create'
       end
+      namespace :sign_up do
+        post 'email', to: 'email#create'
+        post 'password', to: 'password#create'
+        post 'profile', to: 'profile#create'
+        post 'complete', to: 'complete#create'
+      end
     end
   end
   
@@ -66,12 +76,19 @@ Rails.application.routes.draw do
   namespace :users do
     # ページ（エントリポイント）
     get 'sign_in', to: 'sign_in#index'
+    get 'sign_up', to: 'sign_up#index'
 
     # API
     namespace :api do
       namespace :sign_in do
         post 'authenticate', to: 'authenticate#create'
         post 'verify', to: 'verify#create'
+      end
+      namespace :sign_up do
+        post 'email', to: 'email#create'
+        post 'password', to: 'password#create'
+        post 'profile', to: 'profile#create'
+        post 'complete', to: 'complete#create'
       end
     end
   end
