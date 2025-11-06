@@ -94,7 +94,20 @@ services:
       interval: 1s
       start_period: 3s
 
-  # ORY Hydra (Migration + Serve統合版)
+  # ORY Hydra Migration (初期化専用タスク)
+  hydra-migrate:
+    image: oryd/hydra:v2.3.0
+    environment:
+      - DSN=${HYDRA_DSN}
+    command: migrate sql -c /etc/config/hydra.yml -e --yes
+    volumes:
+      - ./docker/hydra:/etc/config
+    depends_on:
+      db:
+        condition: service_healthy
+    restart: "no"
+
+  # ORY Hydra (サーバー)
   hydra:
     image: oryd/hydra:v2.3.0
     environment:
@@ -110,16 +123,10 @@ services:
       # Admin API (4445) は内部通信のみ - 外部公開禁止
     volumes:
       - ./docker/hydra:/etc/config
-    entrypoint: >
-      sh -c "
-        echo 'Hydra v2.3.0: Checking and running migrations...' &&
-        hydra migrate sql up -c /etc/config/hydra.yml -e --yes &&
-        echo 'Hydra v2.3.0: Starting server...' &&
-        hydra serve -c /etc/config/hydra.yml all --dev
-      "
+    command: serve -c /etc/config/hydra.yml all --dev
     depends_on:
-      db:
-        condition: service_healthy
+      hydra-migrate:
+        condition: service_completed_successfully
     healthcheck:
       test: ["CMD", "wget", "--no-verbose", "--tries=1", "--spider", "http://localhost:4444/health/ready"]
       timeout: 5s
