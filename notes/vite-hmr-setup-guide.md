@@ -44,9 +44,33 @@ import { createRoot } from 'react-dom/client';
 
 ---
 
-## 🔧 nginx経由（HTTPS）でのHMR対応
+## 🔧 リバースプロキシ経由（HTTPS）でのHMR対応
 
-### 1. nginx設定（WebSocketプロキシ）
+### 1-A. https-portal設定（WebSocketプロキシ）**← 現在使用中**
+
+**ファイル**: `docker/https-portal/common-config.conf`
+
+```nginx
+# Vite dev server - HMR WebSocket用 (port 3036)
+location /vite-dev/ {
+    proxy_pass http://app:3036;
+    proxy_http_version 1.1;
+    proxy_set_header Upgrade $http_upgrade;
+    proxy_set_header Connection "upgrade";
+    proxy_set_header Host $host;
+    proxy_set_header X-Real-IP $remote_addr;
+    proxy_set_header X-Forwarded-For $proxy_add_x_forwarded_for;
+    proxy_set_header X-Forwarded-Proto https;
+}
+```
+
+**https-portal固有の設定**：
+- `docker/https-portal/localhost.ssl.conf.erb` で `common-config.conf` をinclude
+- https-portalが自動的に証明書を生成・管理
+
+---
+
+### 1-B. 素のnginx設定（参考：nginx直接使用の場合）
 
 **ファイル**: `docker/nginx/nginx.conf`
 
@@ -105,15 +129,20 @@ export default defineConfig({
 **ファイル**: `.env`
 
 ```bash
-# Vite HMR WebSocket Configuration (for nginx/HTTPS access)
+# Vite HMR WebSocket Configuration (for HTTPS access)
+VITE_HMR_PROTOCOL=wss
+VITE_HMR_HOST=localhost
+VITE_HMR_PORT=4443
+```
+
+**プロジェクト別の例**：
+
+```bash
+# idpプロジェクト（idp.localhost:443）の場合
 VITE_HMR_PROTOCOL=wss
 VITE_HMR_HOST=idp.localhost
 VITE_HMR_PORT=443
-```
 
-**カスタマイズ例** (`.env.local` で上書き)：
-
-```bash
 # sso-idpプロジェクト（localhost:4443）の場合
 VITE_HMR_PROTOCOL=wss
 VITE_HMR_HOST=localhost
@@ -158,14 +187,19 @@ http://localhost:3000/test-react
 - 保存
 - ブラウザがリロードせずに即座に反映されるか確認
 
-### 2. nginx経由（HTTPS）
+### 2. https-portal経由（HTTPS）
 
 ```
+# sso-idpプロジェクトの場合
+https://localhost:4443/test-react
+
+# idpプロジェクトの場合
 https://idp.localhost/test-react
 ```
 
 - 同様にHMRが動作するか確認
 - ブラウザコンソールにWebSocketエラーが出ないか確認
+- WebSocket接続先が正しいか確認（例：`wss://localhost:4443/vite-dev/`）
 
 ---
 
@@ -179,21 +213,22 @@ https://idp.localhost/test-react
 
 → **全てのエントリーポイント**に`import '@vitejs/plugin-react-swc/preamble';`を追加
 
-### nginx経由でWebSocket接続失敗
+### リバースプロキシ経由でWebSocket接続失敗
 
 ```
-WebSocket connection to 'wss://idp.localhost:3036/vite-dev/' failed
+WebSocket connection to 'wss://localhost:4443/vite-dev/' failed
 ```
 
-→ nginx.confに`location /vite-dev/`のWebSocketプロキシ設定を追加
+→ https-portalの場合: `common-config.conf`に`location /vite-dev/`のWebSocketプロキシ設定を追加
+→ nginx直接使用の場合: `nginx.conf`に`location /vite-dev/`のWebSocketプロキシ設定を追加
 
 ### CSPエラー
 
 ```
-Refused to connect to 'wss://idp.localhost/vite-dev/' because it violates CSP
+Refused to connect to 'wss://localhost:4443/vite-dev/' because it violates CSP
 ```
 
-→ `application_controller.rb`のCSP設定に`wss://`接続先を追加
+→ `application_controller.rb`のCSP設定に`connect-src`で`wss://`接続先を追加
 
 ---
 
@@ -206,4 +241,5 @@ Refused to connect to 'wss://idp.localhost/vite-dev/' because it violates CSP
 ---
 
 **作成日**: 2025-10-27
+**最終更新**: 2025-11-05（https-portal対応追記）
 **対象環境**: Rails 8.0.3 + Vite 7.1.12 + React 19.2.0

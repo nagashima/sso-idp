@@ -10,13 +10,13 @@ class Sso::SignOutController < ApplicationController
 
     begin
       # Hydraからのログアウト要求詳細を取得
-      logout_request = HydraAdminClient.get_logout_request(logout_challenge)
+      logout_request = HydraClient.get_logout_request(logout_challenge)
 
       # IdPローカルセッションをクリア
       perform_local_logout
 
       # Hydraのログアウト要求を受け入れ
-      response = HydraAdminClient.accept_logout_request(logout_challenge)
+      response = HydraClient.accept_logout_request(logout_challenge)
 
       # Hydraが指定したリダイレクト先に転送（通常はRPのトップページ）
       redirect_to response['redirect_to'], allow_other_host: true

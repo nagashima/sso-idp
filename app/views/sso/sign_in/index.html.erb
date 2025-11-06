@@ -1,0 +1,200 @@
+<div class="container mx-auto px-4 py-8">
+  <div class="max-w-md mx-auto bg-white rounded-lg shadow-md p-6">
+    <h1 class="text-2xl font-bold text-center text-gray-800 mb-6">
+      SSOログイン（新API版）
+    </h1>
+
+    <div id="login-form">
+      <!-- Step 1: メール・パスワード入力 -->
+      <div id="credentials-step">
+        <div class="space-y-4">
+          <div id="error-message" class="hidden bg-red-50 border border-red-200 rounded-lg p-4">
+            <p id="error-text" class="text-red-800"></p>
+          </div>
+
+          <div class="space-y-2">
+            <label class="block text-sm font-medium text-gray-700">メールアドレス</label>
+            <input type="email" id="email"
+                   class="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500"
+                   placeholder="example@example.com"
+                   required>
+          </div>
+
+          <div class="space-y-2">
+            <label class="block text-sm font-medium text-gray-700">パスワード</label>
+            <input type="password" id="password"
+                   class="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500"
+                   placeholder="パスワードを入力"
+                   required>
+          </div>
+
+          <div class="pt-2">
+            <button id="authenticate-btn"
+                    class="w-full bg-blue-500 hover:bg-blue-600 text-white font-semibold py-2 px-4 rounded focus:outline-none focus:ring-2 focus:ring-blue-500">
+              次へ（認証コード送信）
+            </button>
+          </div>
+        </div>
+      </div>
+
+      <!-- Step 2: 認証コード入力 -->
+      <div id="verify-step" class="hidden">
+        <div class="space-y-4">
+          <div class="bg-blue-50 border border-blue-200 rounded-lg p-4 mb-4">
+            <p class="text-blue-800">メールに認証コードを送信しました。</p>
+          </div>
+
+          <!-- 開発環境のみ：認証コード表示 -->
+          <div id="debug-auth-code" class="hidden bg-yellow-50 border border-yellow-200 rounded-lg p-3 mb-4">
+            <p class="text-yellow-800 text-sm text-center">
+              <strong>開発用:</strong> 認証コード = <code id="debug-code-value" class="bg-yellow-200 px-1 rounded"></code>
+            </p>
+          </div>
+
+          <div class="space-y-2">
+            <label class="block text-sm font-medium text-gray-700">認証コード（6桁）</label>
+            <input type="text" id="auth-code"
+                   class="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500"
+                   placeholder="123456"
+                   maxlength="6"
+                   required>
+          </div>
+
+          <div class="pt-2">
+            <button id="verify-btn"
+                    class="w-full bg-blue-500 hover:bg-blue-600 text-white font-semibold py-2 px-4 rounded focus:outline-none focus:ring-2 focus:ring-blue-500">
+              ログイン
+            </button>
+          </div>
+
+          <div class="text-center">
+            <button id="back-btn" class="text-blue-500 hover:text-blue-600">戻る</button>
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <div class="mt-4 text-center space-y-2">
+      <div>
+        <% if @login_challenge.present? %>
+          <%= link_to '新規登録はこちら', sso_sign_up_path(login_challenge: @login_challenge), class: "text-blue-500 hover:text-blue-600 font-medium" %>
+        <% end %>
+      </div>
+      <div>
+        <%= link_to 'ホームに戻る', root_path, class: "text-gray-500 hover:text-gray-600 text-sm" %>
+      </div>
+    </div>
+  </div>
+</div>
+
+<script>
+// Phase 1-A: 仮のJavaScript実装（SSO版）
+// Phase 2: Reactに置き換え
+
+let tempToken = null;
+const loginChallenge = '<%= j @login_challenge %>'; // ERBからlogin_challengeを取得
+
+// エラー表示
+function showError(message) {
+  const errorDiv = document.getElementById('error-message');
+  const errorText = document.getElementById('error-text');
+  errorText.textContent = message;
+  errorDiv.classList.remove('hidden');
+}
+
+function hideError() {
+  document.getElementById('error-message').classList.add('hidden');
+}
+
+// Step 1: 認証（SSO版）
+document.getElementById('authenticate-btn').addEventListener('click', async () => {
+  hideError();
+
+  const email = document.getElementById('email').value;
+  const password = document.getElementById('password').value;
+
+  try {
+    const response = await fetch('/sso/api/sign_in/authenticate', {
+      method: 'POST',
+      headers: {
+        'Content-Type': 'application/json',
+      },
+      body: JSON.stringify({
+        email,
+        password,
+        login_challenge: loginChallenge // SSO版はlogin_challengeを送る
+      })
+    });
+
+    const data = await response.json();
+
+    if (response.ok) {
+      // 成功: temp_token保存、Step 2へ
+      tempToken = data.temp_token;
+
+      // 開発環境のみ：認証コード表示
+      if (data.debug_auth_code) {
+        document.getElementById('debug-code-value').textContent = data.debug_auth_code;
+        document.getElementById('debug-auth-code').classList.remove('hidden');
+      }
+
+      document.getElementById('credentials-step').classList.add('hidden');
+      document.getElementById('verify-step').classList.remove('hidden');
+    } else {
+      // エラー
+      const errorMsg = data.errors?.base?.[0] || data.errors?.email?.[0] || data.errors?.password?.[0] || 'ログインに失敗しました';
+      showError(errorMsg);
+    }
+  } catch (error) {
+    showError('通信エラーが発生しました');
+  }
+});
+
+// Step 2: 検証（SSO版）
+document.getElementById('verify-btn').addEventListener('click', async () => {
+  hideError();
+
+  const authCode = document.getElementById('auth-code').value;
+
+  try {
+    const response = await fetch('/sso/api/sign_in/verify', {
+      method: 'POST',
+      headers: {
+        'Content-Type': 'application/json',
+      },
+      body: JSON.stringify({
+        temp_token: tempToken,
+        auth_code: authCode,
+        login_challenge: loginChallenge // SSO版はlogin_challengeを送る
+      })
+    });
+
+    const data = await response.json();
+
+    if (response.ok) {
+      // 成功: Hydraリダイレクト or 通常リダイレクト
+      if (data.hydra_redirect) {
+        // SSO: Hydraにリダイレクト
+        window.location.href = data.hydra_redirect;
+      } else {
+        // 通常: redirect_toにリダイレクト
+        window.location.href = data.redirect_to || '/';
+      }
+    } else {
+      // エラー
+      showError(data.error || '認証コードが正しくありません');
+    }
+  } catch (error) {
+    showError('通信エラーが発生しました');
+  }
+});
+
+// 戻るボタン
+document.getElementById('back-btn').addEventListener('click', () => {
+  document.getElementById('verify-step').classList.add('hidden');
+  document.getElementById('credentials-step').classList.remove('hidden');
+  document.getElementById('auth-code').value = '';
+  document.getElementById('debug-auth-code').classList.add('hidden');
+  hideError();
+});
+</script>

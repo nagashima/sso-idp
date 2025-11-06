@@ -1,0 +1,5 @@
+# -*- mode: ruby -*-
+# vi: set ft=ruby :
+require 'authentication_logs.schema'
+require 'signup_tickets.schema'
+require 'users.schema'

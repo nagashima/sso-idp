@@ -1,11 +1,14 @@
 # SSOフロー中の会員登録機能 最終仕様書
 
-**Version**: 1.3.0
+**Version**: 1.3.3
 **作成日**: 2025-10-31
 **最終更新**: 2025-11-01
 **Status**: 最終版（実装準備完了）
 
 **変更履歴**:
+- v1.3.3: HTTP通信層の命名を統一（HydraAdminClient→HydraClient）
+- v1.3.2: Service命名を統一（HydraClientService→HydraService）
+- v1.3.1: URL/アクション名をシンプルに統一（email_verification→email, save_password→password, registration→complete）
 - v1.3.0: Rails設計思想を追加（Service層設計原則、API URL設計思想、Controller設計パターン、Service層詳細設計、テストピラミッド）
 - v1.2.0: バリデーション戦略追加（Form Objects + React Hook Form + Zod）
 - v1.1.0: ridgepole採用、Phase 1分割、React Router + エントリポイント2つ、CredentialsStep命名
@@ -159,7 +162,7 @@ IdPで以下2つの機能を実現する：
 
 **機能単位のService（特殊パターン）**：
 - `CacheService`: Valkeyキャッシュ操作
-- `HydraClientService`: Hydra Admin API連携
+- `HydraService`: Hydra Admin API連携
 - `AuthenticationLoggerService`: 認証ログ記録
 - `SignupService`: 登録フロー統括（複数モデル横断）
 
@@ -232,10 +235,10 @@ GET  /users/sign_up                              # 会員登録画面
 POST /users/api/sign_in/authenticate             # 認証API
 POST /users/api/sign_in/verify                   # 2FA検証API
 
-POST /users/api/sign_up/email_verification       # メール送信API
+POST /users/api/sign_up/email                    # メール送信API
 POST /users/api/sign_up/password                 # パスワード保存API
 POST /users/api/sign_up/profile                  # プロフィール保存API
-POST /users/api/sign_up/registration             # 登録完了API
+POST /users/api/sign_up/complete                 # 登録完了API
 
 DELETE /users/sign_out                           # ログアウト
 ```
@@ -249,10 +252,10 @@ GET  /sso/sign_up?login_challenge=xxx            # SSO会員登録画面
 POST /sso/api/sign_in/authenticate               # 認証API
 POST /sso/api/sign_in/verify                     # 2FA検証API
 
-POST /sso/api/sign_up/email_verification         # メール送信API
+POST /sso/api/sign_up/email                      # メール送信API
 POST /sso/api/sign_up/password                   # パスワード保存API
 POST /sso/api/sign_up/profile                    # プロフィール保存API
-POST /sso/api/sign_up/registration               # 登録完了API（Hydra連携）
+POST /sso/api/sign_up/complete                   # 登録完了API（Hydra連携）
 
 GET  /sso/consent?consent_challenge=xxx          # 同意画面
 POST /sso/consent                                # 同意処理
@@ -408,7 +411,7 @@ GET /sso/sign_up?login_challenge=xyz123
    - SignupTicketレコード削除
 
    ★ login_challengeがある場合 ★
-   - HydraAdminClient.accept_login_request(login_challenge, user.id)
+   - HydraClient.accept_login_request(login_challenge, user.id)
    - redirect_to: Hydraのリダイレクト先URL
    ↓
 【Hydra】consent_challenge発行
@@ -811,7 +814,7 @@ end
 
 ---
 
-### HydraClientService（機能単位）
+### HydraService（機能単位）
 
 Hydra Admin API連携を担当。
 
@@ -820,10 +823,10 @@ Hydra Admin API連携を担当。
 - `accept_consent_request(challenge, scopes)` - 同意承認
 
 ```ruby
-# app/services/hydra_client_service.rb
-class HydraClientService
+# app/services/hydra_service.rb
+class HydraService
   def self.accept_login_request(challenge, user_id, remember: true, remember_for: 3600)
-    response = HydraAdminClient.accept_login_request(
+    response = HydraClient.accept_login_request(
       challenge,
       user_id.to_s,
       remember: remember,
@@ -831,12 +834,12 @@ class HydraClientService
     )
     response['redirect_to']
   rescue => e
-    Rails.logger.error "HydraClientService.accept_login_request failed: #{e.message}"
+    Rails.logger.error "HydraService.accept_login_request failed: #{e.message}"
     raise HydraError, e.message
   end
 
   def self.accept_consent_request(challenge, user, scopes)
-    response = HydraAdminClient.accept_consent_request(
+    response = HydraClient.accept_consent_request(
       challenge,
       user.id.to_s,
       scopes: scopes,
@@ -903,10 +906,10 @@ app/controllers/
 │   ├── sign_up_controller.rb          # 通常登録（親クラス）
 │   └── api/
 │       └── sign_up/
-│           ├── email_verification_controller.rb
+│           ├── email_controller.rb
 │           ├── password_controller.rb
 │           ├── profile_controller.rb
-│           └── registration_controller.rb
+│           └── complete_controller.rb
 └── sso/
     ├── sign_in_controller.rb          # SSOログイン（子クラス、継承）
     ├── sign_up_controller.rb          # SSO登録（子クラス、継承）
@@ -1050,7 +1053,7 @@ class Sso::SignUpController < Users::SignUpController
   private
 
   def accept_hydra_login_request(challenge, user)
-    response = HydraAdminClient.accept_login_request(
+    response = HydraClient.accept_login_request(
       challenge,
       user.id.to_s,
       remember: true,
@@ -1068,9 +1071,9 @@ Controller は業務ロジックを持たず、Service に委譲する設計を�
 #### ❌ Before: 業務ロジックがControllerに
 
 ```ruby
-# app/controllers/users/api/sign_up/registration_controller.rb
-class Users::Api::SignUp::RegistrationController < Users::Api::ApiController
-  def complete
+# app/controllers/users/api/sign_up/complete_controller.rb
+class Users::Api::SignUp::CompleteController < Users::Api::ApiController
+  def create
     signup_ticket = SignupTicket.find_by(token: params[:token])
     return render_error('無効なトークン') if signup_ticket.nil?
     return render_error('期限切れ') if signup_ticket.expired?
@@ -1118,9 +1121,9 @@ end
 #### ✅ After: Service委譲のみ
 
 ```ruby
-# app/controllers/users/api/sign_up/registration_controller.rb
-class Users::Api::SignUp::RegistrationController < Users::Api::ApiController
-  def complete
+# app/controllers/users/api/sign_up/complete_controller.rb
+class Users::Api::SignUp::CompleteController < Users::Api::ApiController
+  def create
     result = SignupService.complete_registration(
       token: params[:token],
       request: request
@@ -1309,7 +1312,7 @@ export const useSignUp = () => {
     setError(null)
 
     try {
-      const response = await fetch('/users/api/sign_up/send_email', {
+      const response = await fetch('/users/api/sign_up/email', {
         method: 'POST',
         headers: {
           'Content-Type': 'application/json',
@@ -1421,7 +1424,7 @@ end
 ```ruby
 # app/controllers/users/api/sign_up/password_controller.rb
 class Users::Api::SignUp::PasswordController < ApplicationController
-  def save
+  def create
     @signup_form = SignupForm.new(signup_form_params)
 
     unless @signup_form.valid?
@@ -1501,7 +1504,7 @@ export const PasswordStep = () => {
   });
 
   const onSubmit = async (data: SignupForm) => {
-    const response = await fetch('/users/api/sign_up/save_password', {
+    const response = await fetch('/users/api/sign_up/password', {
       method: 'POST',
       headers: {
         'Content-Type': 'application/json',
@@ -1626,7 +1629,7 @@ export const PasswordStep = () => {
      - `create_from_signup`, `update_profile`
    - [ ] SignupService実装（機能単位：登録フロー統括）
      - `complete_registration`（Result Objectパターン）
-   - [ ] HydraClientService実装（機能単位：Hydra連携）
+   - [ ] HydraService実装（機能単位：Hydra連携）
      - `accept_login_request`, `accept_consent_request`
    - [ ] AuthenticationLoggerService実装（機能単位：認証ログ記録）
      - `log_user_registration`, `log_login`
@@ -1640,9 +1643,9 @@ export const PasswordStep = () => {
    - [ ] Users::Api::SignUp::EmailVerificationController（Service委譲のみ）
    - [ ] Users::Api::SignUp::PasswordController（Service委譲のみ）
    - [ ] Users::Api::SignUp::ProfileController（Service委譲のみ）
-   - [ ] Users::Api::SignUp::RegistrationController（Service委譲のみ）
+   - [ ] Users::Api::SignUp::CompleteController（Service委譲のみ）
    - [ ] Sso::SignUpController（子クラス、Hydra連携）
-   - [ ] Sso::Api::SignUp::RegistrationController（継承、オーバーライド）
+   - [ ] Sso::Api::SignUp::CompleteController（継承、オーバーライド）
    - [ ] **Controllerテスト（最小限：パラメータ受け渡し確認）**
 
 5. **ERB版View（動作確認用）**
@@ -1964,11 +1967,10 @@ namespace :users do
   # API
   namespace :api do
     namespace :sign_up do
-      post 'send_email', to: 'email_verification#send'
-      post 'verify_email', to: 'email_verification#verify'
-      post 'save_password', to: 'password#save'
-      post 'save_profile', to: 'profile#save'
-      post 'complete', to: 'registration#complete'
+      post 'email', to: 'email_verification#create'
+      post 'password', to: 'password#create'
+      post 'profile', to: 'profile#create'
+      post 'complete', to: 'complete#create'
     end
   end
 end
@@ -2482,7 +2484,7 @@ end
 RSpec.describe 'Hydra OAuth2 Flow', type: :request do
   before do
     # Hydra Admin APIをモック
-    allow(HydraAdminClient).to receive(:accept_login_request)
+    allow(HydraClient).to receive(:accept_login_request)
       .and_return({ 'redirect_to' => 'https://idp.example.com/sso/consent?consent_challenge=...' })
   end
 
@@ -2509,7 +2511,7 @@ RSpec.describe 'Hydra OAuth2 Flow', type: :request do
     json = JSON.parse(response.body)
 
     # Hydra accept_login_requestが呼ばれた確認
-    expect(HydraAdminClient).to have_received(:accept_login_request)
+    expect(HydraClient).to have_received(:accept_login_request)
       .with('test_challenge', anything)
 
     # リダイレクト先がHydra

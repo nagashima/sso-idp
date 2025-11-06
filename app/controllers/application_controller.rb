@@ -83,6 +83,15 @@ class ApplicationController < ActionController::Base
     response.headers['X-Content-Type-Options'] = 'nosniff'
     response.headers['X-XSS-Protection'] = '1; mode=block'
     response.headers['Referrer-Policy'] = 'strict-origin-when-cross-origin'
-    response.headers['Content-Security-Policy'] = "default-src 'self'; script-src 'self' 'unsafe-inline' cdn.tailwindcss.com; style-src 'self' 'unsafe-inline' cdn.tailwindcss.com"
+
+    # Vite開発サーバー用WebSocket接続許可（開発環境のみ）
+    csp_policy = "default-src 'self'; script-src 'self' 'unsafe-inline' cdn.tailwindcss.com; style-src 'self' 'unsafe-inline' cdn.tailwindcss.com"
+    if Rails.env.development?
+      vite_host = ENV['VITE_HMR_HOST'] || 'localhost'
+      vite_port = ENV['VITE_RUBY_PORT'] || '3036'
+      csp_policy += "; connect-src 'self' wss://#{vite_host} wss://#{vite_host}:#{vite_port} ws://localhost:#{vite_port} ws://localhost:3037"
+    end
+
+    response.headers['Content-Security-Policy'] = csp_policy
   end
 end

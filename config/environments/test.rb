@@ -20,8 +20,14 @@ Rails.application.configure do
 
   # Show full error reports.
   config.consider_all_requests_local = true
-  # Use memory store for cache during tests (instead of null_store)
-  config.cache_store = :memory_store
+  # Use Valkey cache store for tests (same as development/production)
+  # Required for delete_matched support in CacheService
+  config.cache_store = :redis_cache_store, {
+    url: ENV.fetch('VALKEY_URL', 'redis://:valkey_password@valkey:6379/0').sub('/0', '/2'),  # DB 2 for test
+    reconnect_attempts: 3,
+    timeout: 1.0,
+    pool: { size: 10 }
+  }
 
   # Render exception templates for rescuable exceptions and raise for other exceptions.
   config.action_dispatch.show_exceptions = :rescuable

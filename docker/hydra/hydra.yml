@@ -19,9 +19,9 @@ dsn: mysql://rails:rails_password@db:3306/hydra_development?parseTime=true
 urls:
   self:
     issuer: https://localhost:4443
-  login: https://localhost:4443/auth/login
-  consent: https://localhost:4443/auth/consent
-  logout: https://localhost:4443/auth/logout
+  login: https://localhost:4443/sso/sign_in
+  consent: https://localhost:4443/sso/consent
+  logout: https://localhost:4443/sso/logout
   post_logout_redirect: https://localhost:4443/
 
 secrets:

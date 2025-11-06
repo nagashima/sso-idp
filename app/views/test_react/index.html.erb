@@ -1,0 +1,30 @@
+<% content_for :title, "React技術検証テスト" %>
+
+<div class="min-h-screen bg-gray-100 py-8">
+  <div class="container mx-auto px-4">
+    <h1 class="text-3xl font-bold text-center mb-8">React技術検証テストページ</h1>
+
+    <div class="max-w-2xl mx-auto bg-white p-6 rounded-lg shadow-md">
+      <h2 class="text-xl font-semibold mb-4">Vite + SWC動作確認</h2>
+
+      <!-- React マウントポイント -->
+      <div id="test-react-component" class="border-2 border-dashed border-gray-300 p-4 rounded">
+        <p class="text-gray-500 text-center">Loading React component...</p>
+      </div>
+
+      <div class="mt-6">
+        <h3 class="text-lg font-medium mb-2">技術的検証項目:</h3>
+        <ul class="list-disc list-inside space-y-1 text-sm text-gray-600">
+          <li>Basic React コンポーネント表示</li>
+          <li>Vite WebSocket接続（Hot Reload）</li>
+          <li>SWCプラグイン動作確認</li>
+          <li>CSP制約解決確認</li>
+          <li>TypeScript + JSX変換動作</li>
+        </ul>
+      </div>
+    </div>
+  </div>
+</div>
+
+<!-- React テストコンポーネント読み込み -->
+<%= vite_javascript_tag "test-react.tsx" %>

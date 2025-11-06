@@ -1,0 +1,307 @@
+<div class="container mx-auto px-4 py-8">
+  <div class="max-w-2xl mx-auto bg-white rounded-lg shadow-md p-6">
+    <h1 class="text-2xl font-bold text-center text-gray-800 mb-6">
+      会員登録（新API版）
+    </h1>
+
+    <div id="signup-form">
+      <div id="error-message" class="hidden bg-red-50 border border-red-200 rounded-lg p-4 mb-4">
+        <p id="error-text" class="text-red-800"></p>
+      </div>
+
+      <!-- Step 1: メールアドレス入力 -->
+      <div id="email-step">
+        <div class="space-y-4">
+          <div class="space-y-2">
+            <label class="block text-sm font-medium text-gray-700">メールアドレス</label>
+            <input type="email" id="email"
+                   class="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500"
+                   placeholder="example@example.com"
+                   required>
+          </div>
+
+          <div class="pt-2">
+            <button id="email-btn"
+                    class="w-full bg-blue-500 hover:bg-blue-600 text-white font-semibold py-2 px-4 rounded focus:outline-none focus:ring-2 focus:ring-blue-500">
+              確認メールを送信
+            </button>
+          </div>
+        </div>
+      </div>
+
+      <!-- Step 2: メール送信完了 -->
+      <div id="email-sent-step" class="hidden">
+        <div class="bg-blue-50 border border-blue-200 rounded-lg p-6">
+          <p class="text-blue-800 text-center mb-2">
+            <strong>メールを送信しました</strong>
+          </p>
+          <p class="text-blue-700 text-sm text-center">
+            メールに記載されたリンクをクリックして、登録を続けてください。
+          </p>
+        </div>
+      </div>
+
+      <!-- Step 3: パスワード設定 -->
+      <div id="password-step" class="hidden">
+        <div class="space-y-4">
+          <div class="bg-green-50 border border-green-200 rounded-lg p-3 mb-4">
+            <p class="text-green-800 text-sm text-center">メールアドレスの確認が完了しました</p>
+          </div>
+
+          <div class="space-y-2">
+            <label class="block text-sm font-medium text-gray-700">パスワード（8文字以上）</label>
+            <input type="password" id="password"
+                   class="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500"
+                   placeholder="パスワードを入力"
+                   required>
+          </div>
+
+          <div class="space-y-2">
+            <label class="block text-sm font-medium text-gray-700">パスワード（確認）</label>
+            <input type="password" id="password-confirmation"
+                   class="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500"
+                   placeholder="パスワードを再入力"
+                   required>
+          </div>
+
+          <div class="pt-2">
+            <button id="password-btn"
+                    class="w-full bg-blue-500 hover:bg-blue-600 text-white font-semibold py-2 px-4 rounded focus:outline-none focus:ring-2 focus:ring-blue-500">
+              次へ
+            </button>
+          </div>
+        </div>
+      </div>
+
+      <!-- Step 4: プロフィール入力 -->
+      <div id="profile-step" class="hidden">
+        <div class="space-y-4">
+          <div class="space-y-2">
+            <label class="block text-sm font-medium text-gray-700">お名前 <span class="text-red-500">*</span></label>
+            <input type="text" id="name"
+                   class="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500"
+                   placeholder="山田 太郎"
+                   required>
+          </div>
+
+          <div class="space-y-2">
+            <label class="block text-sm font-medium text-gray-700">生年月日</label>
+            <input type="date" id="birth-date"
+                   class="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500">
+          </div>
+
+          <div class="space-y-2">
+            <label class="block text-sm font-medium text-gray-700">住所</label>
+            <input type="text" id="address"
+                   class="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500"
+                   placeholder="東京都渋谷区...">
+          </div>
+
+          <div class="pt-2">
+            <button id="profile-btn"
+                    class="w-full bg-blue-500 hover:bg-blue-600 text-white font-semibold py-2 px-4 rounded focus:outline-none focus:ring-2 focus:ring-blue-500">
+              次へ
+            </button>
+          </div>
+        </div>
+      </div>
+
+      <!-- Step 5: 確認画面 -->
+      <div id="confirm-step" class="hidden">
+        <div class="space-y-4">
+          <div class="bg-gray-50 border border-gray-200 rounded-lg p-4">
+            <h3 class="font-semibold text-gray-800 mb-3">登録内容の確認</h3>
+            <dl class="space-y-2">
+              <div class="flex">
+                <dt class="w-32 text-sm text-gray-600">メールアドレス:</dt>
+                <dd id="confirm-email" class="text-sm text-gray-800"></dd>
+              </div>
+              <div class="flex">
+                <dt class="w-32 text-sm text-gray-600">お名前:</dt>
+                <dd id="confirm-name" class="text-sm text-gray-800"></dd>
+              </div>
+              <div class="flex">
+                <dt class="w-32 text-sm text-gray-600">生年月日:</dt>
+                <dd id="confirm-birth-date" class="text-sm text-gray-800"></dd>
+              </div>
+              <div class="flex">
+                <dt class="w-32 text-sm text-gray-600">住所:</dt>
+                <dd id="confirm-address" class="text-sm text-gray-800"></dd>
+              </div>
+            </dl>
+          </div>
+
+          <div class="pt-2">
+            <button id="complete-btn"
+                    class="w-full bg-green-500 hover:bg-green-600 text-white font-semibold py-2 px-4 rounded focus:outline-none focus:ring-2 focus:ring-green-500">
+              登録を完了する
+            </button>
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <div class="mt-4 text-center">
+      <%= link_to 'ログインはこちら', users_sign_in_path, class: "text-blue-500 hover:text-blue-600 mr-4" %>
+      <%= link_to 'ホームに戻る', root_path, class: "text-blue-500 hover:text-blue-600" %>
+    </div>
+  </div>
+</div>
+
+<script>
+// Phase 1-A: 仮のJavaScript実装
+// Phase 2: Reactに置き換え
+
+let signupToken = null;
+const urlParams = new URLSearchParams(window.location.search);
+const tokenFromUrl = urlParams.get('token');
+
+function showStep(stepId) {
+  // エラーメッセージを非表示
+  hideError();
+
+  // 全ステップを非表示
+  ['email-step', 'email-sent-step', 'password-step', 'profile-step', 'confirm-step'].forEach(id => {
+    document.getElementById(id).classList.add('hidden');
+  });
+
+  // 指定されたステップを表示
+  document.getElementById(stepId).classList.remove('hidden');
+}
+
+function showError(message) {
+  const errorDiv = document.getElementById('error-message');
+  const errorText = document.getElementById('error-text');
+  errorText.textContent = message;
+  errorDiv.classList.remove('hidden');
+}
+
+function hideError() {
+  document.getElementById('error-message').classList.add('hidden');
+}
+
+// URL にトークンがある場合はパスワード設定ステップへ
+if (tokenFromUrl) {
+  signupToken = tokenFromUrl;
+  showStep('password-step');
+}
+
+// Step 1: メール送信
+document.getElementById('email-btn').addEventListener('click', async () => {
+  hideError();
+  const email = document.getElementById('email').value;
+
+  try {
+    const response = await fetch('/users/api/sign_up/email', {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({ email })
+    });
+
+    const data = await response.json();
+
+    if (response.ok) {
+      signupToken = data.token;
+      showStep('email-sent-step');
+    } else {
+      const errorMsg = data.errors?.email?.[0] || data.errors?.base?.[0] || 'エラーが発生しました';
+      showError(errorMsg);
+    }
+  } catch (error) {
+    showError('通信エラーが発生しました');
+  }
+});
+
+// Step 3: パスワード保存
+document.getElementById('password-btn').addEventListener('click', async () => {
+  hideError();
+  const password = document.getElementById('password').value;
+  const passwordConfirmation = document.getElementById('password-confirmation').value;
+
+  // パスワード一致確認
+  if (password !== passwordConfirmation) {
+    showError('パスワードが一致しません');
+    return;
+  }
+
+  try {
+    const response = await fetch('/users/api/sign_up/password', {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({ token: signupToken, password })
+    });
+
+    const data = await response.json();
+
+    if (response.ok) {
+      showStep('profile-step');
+    } else {
+      const errorMsg = data.errors?.password?.[0] || data.errors?.base?.[0] || 'エラーが発生しました';
+      showError(errorMsg);
+    }
+  } catch (error) {
+    showError('通信エラーが発生しました');
+  }
+});
+
+// Step 4: プロフィール保存
+document.getElementById('profile-btn').addEventListener('click', async () => {
+  hideError();
+  const name = document.getElementById('name').value;
+  const birthDate = document.getElementById('birth-date').value;
+  const address = document.getElementById('address').value;
+
+  try {
+    const response = await fetch('/users/api/sign_up/profile', {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({
+        token: signupToken,
+        name: name,
+        birth_date: birthDate,
+        address: address
+      })
+    });
+
+    const data = await response.json();
+
+    if (response.ok) {
+      // 確認画面に値を表示
+      document.getElementById('confirm-email').textContent = document.getElementById('email').value;
+      document.getElementById('confirm-name').textContent = name;
+      document.getElementById('confirm-birth-date').textContent = birthDate || '（未入力）';
+      document.getElementById('confirm-address').textContent = address || '（未入力）';
+      showStep('confirm-step');
+    } else {
+      const errorMsg = data.errors?.name?.[0] || data.errors?.base?.[0] || 'エラーが発生しました';
+      showError(errorMsg);
+    }
+  } catch (error) {
+    showError('通信エラーが発生しました');
+  }
+});
+
+// Step 5: 登録完了
+document.getElementById('complete-btn').addEventListener('click', async () => {
+  hideError();
+
+  try {
+    const response = await fetch('/users/api/sign_up/complete', {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({ token: signupToken })
+    });
+
+    const data = await response.json();
+
+    if (response.ok) {
+      window.location.href = data.redirect_to || '/';
+    } else {
+      const errorMsg = data.errors?.base?.[0] || 'エラーが発生しました';
+      showError(errorMsg);
+    }
+  } catch (error) {
+    showError('通信エラーが発生しました');
+  }
+});
+</script>

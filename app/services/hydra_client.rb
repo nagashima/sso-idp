@@ -1,4 +1,4 @@
-class HydraAdminClient
+class HydraClient
   include HTTParty
 
   base_uri ENV.fetch('HYDRA_ADMIN_URL', 'http://localhost:4445')
