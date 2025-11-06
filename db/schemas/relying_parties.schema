@@ -1,0 +1,15 @@
+# -*- mode: ruby -*-
+# vi: set ft=ruby :
+create_table "relying_parties", charset: "utf8mb4", collation: "utf8mb4_unicode_ci", force: :cascade do |t|
+  t.string "name", null: false
+  t.string "domain", null: false
+  t.string "api_key", null: false, comment: "Hydra登録時のClient ID流用可"
+  t.string "api_secret", null: false, comment: "Hydra登録時のClient Secret流用可"
+  t.string "web_hook_url"
+  t.string "sign_in_url"
+  t.datetime "deleted_at"
+  t.datetime "created_at", null: false
+  t.datetime "updated_at", null: false
+  t.index ["domain"], name: "index_relying_parties_on_domain", unique: true
+  t.index ["api_key"], name: "index_relying_parties_on_api_key", unique: true
+end

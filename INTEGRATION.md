@@ -39,30 +39,28 @@ IdPでSSO認証を行うためのテストユーザーを登録します。
 
 > **補足**: IdPには`letter_opener` gemが組み込まれており、開発環境でのメール確認が可能です。
 
-### ステップ3: RPクライアントの登録（IdP側で実行）
+### ステップ3: RPの登録（IdP側で実行）
 
-RPアプリケーションをIdPに登録し、OAuth2クライアント認証情報を取得します。
+RPを使用するには、以下の2つの登録が必要です：
+1. **Hydra OAuth2クライアント登録**: OAuth2/OpenID Connect認証用
+2. **IdP RelyingPartyマスタ登録**: IdP内部のRP管理用
 
-#### 方法1: ホストOSから実行（シンプル）
+Hydra登録で発行される `CLIENT_ID` と `CLIENT_SECRET` を、IdP RPマスタでも**APIキーとして流用**します。
 
-```bash
-cd sso-idp
-./scripts/register-client.sh "https://localhost:3443/auth/sso/callback" \
-  --first-party \
-  --cors-origin "https://localhost:4443,https://localhost:3443"
-```
-
-#### 方法2: appコンテナから実行（開発・AWS共通）
+#### 一括登録スクリプト（推奨）
 
 ```bash
 cd sso-idp
-
-# コンテナに入ってから実行
-docker-compose exec app bash
-./scripts/register-client-from-app.sh "https://localhost:3443/auth/sso/callback" \
+./scripts/register-rp-dev.sh "検証用RP" "https://localhost:3443/auth/sso/callback" \
   --first-party \
-  --cors-origin "https://localhost:4443,https://localhost:3443"
+  --cors-origin "https://localhost:4443,https://localhost:3443" \
+  --signin-url "https://localhost:3443/auth/sso"
 ```
+
+このスクリプトは以下を自動で行います：
+1. Hydra OAuth2クライアントを登録
+2. 発行された `CLIENT_ID` / `CLIENT_SECRET` を取得
+3. それらを使用してIdP RelyingPartyマスタに登録
 
 実行後、以下の情報が表示されます（後で使用するのでメモしてください）：
 - `CLIENT_ID`: クライアントID
@@ -70,11 +68,9 @@ docker-compose exec app bash
 
 **オプション説明**:
 - `--first-party`: 信頼済みクライアント（同意画面をスキップ）
-- `--cors-origin`: CORS許可オリジン（複数指定可能）
-
-> **どちらを使うべきか**:
-> - **方法1**: 開発環境で手軽に使いたい場合（推奨）
-> - **方法2**: AWS環境でも同じ手順を使いたい場合、または開発環境でもコンテナ内で統一したい場合
+- `--cors-origin "domains"`: CORS許可オリジン（カンマ区切り）
+- `--signin-url "URL"`: RPのログインページURL
+- `--webhook-url "URL"`: ユーザー情報変更通知先URL（オプション）
 
 ### ステップ4: RP側の環境設定
 
@@ -87,8 +83,8 @@ cd sso-rp
 cp .env.local.example .env.local
 
 # エディタで.env.localを編集
-# OAUTH_CLIENT_ID=<ステップ4で取得したCLIENT_ID>
-# OAUTH_CLIENT_SECRET=<ステップ4で取得したCLIENT_SECRET>
+# OAUTH_CLIENT_ID=<ステップ3で取得したCLIENT_ID>
+# OAUTH_CLIENT_SECRET=<ステップ3で取得したCLIENT_SECRET>
 ```
 
 `.env.local`の設定例：
@@ -328,7 +324,7 @@ docker-compose restart hydra
 - [ ] IdPを起動（`cd sso-idp && docker-compose up -d`）
 - [ ] IdPでテストユーザーを登録（https://localhost:4443）
 - [ ] letter_openerでメール確認・本登録完了（https://localhost:4443/letter_opener）
-- [ ] IdPでRPクライアントを登録（`./scripts/register-client.sh ...`）
+- [ ] IdPでRPを登録（`./scripts/register-rp-dev.sh "検証用RP" "https://localhost:3443/auth/sso/callback" --first-party ...`）
 - [ ] CLIENT_IDとCLIENT_SECRETをメモ
 - [ ] RP側で`.env.local`を作成・編集
 - [ ] RPを起動（`cd sso-rp && docker-compose up -d`）

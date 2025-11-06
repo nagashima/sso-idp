@@ -83,76 +83,64 @@ LOGOUT_STRATEGY=local  # or 'global'
 
 **注意**: 本番環境では、データベースパスワード、JWT秘密鍵、SSL証明書などを適切に変更してください。
 
-## 🔑 OAuth2クライアント管理
+## 🔑 RP登録
 
-### RPクライアント登録
+### RP登録の仕組み
 
-RPクライアントを登録する方法は2つあります：
+RPを登録するには、以下の2つの登録が必要です：
 
-#### **方法1: ホストOSから実行（開発環境専用）**
+1. **Hydra OAuth2クライアント登録**: OAuth2/OpenID Connect認証用
+2. **IdP RelyingPartyマスタ登録**: IdP内部のRP管理用
 
-> **Windows環境の場合**: Git Bash/WSL等では明示的に `bash` を指定してください
-> ```bash
-> bash scripts/register-client.sh "https://your-rp-domain.com/auth/callback"
-> ```
-> ※ `jq`コマンドは不要です（標準の`sed`コマンドで動作します）
+**重要**: Hydra登録で発行される `CLIENT_ID` と `CLIENT_SECRET` を、IdP RPマスタでも**APIキーとして流用**します。これにより2重管理を避けています。
+
+### 一括登録スクリプト（推奨）
+
+開発環境では、上記2つを一括で登録するスクリプトを使用できます：
 
 ```bash
-# 外部RPクライアント（同意画面あり）
-./scripts/register-client.sh "https://your-rp-domain.com/auth/callback"
-
-# 信頼クライアント（同意画面スキップ）
-./scripts/register-client.sh "https://your-rp-domain.com/auth/callback" --first-party
-
-# CORS対応クライアント
-./scripts/register-client.sh "https://your-rp-domain.com/auth/callback" \
-  --cors-origins "https://your-rp-domain.com,https://app.example.com"
+./scripts/register-rp-dev.sh "RP名" "callback_url" [OPTIONS]
 ```
+
+**OPTIONS**:
+- `--first-party`: 信頼済みクライアント（同意画面スキップ）
+- `--cors-origin "domains"`: CORS許可オリジン（カンマ区切り）
+- `--signin-url "URL"`: RPのログインページURL
+- `--webhook-url "URL"`: ユーザー情報変更通知先URL
 
 **登録例（ローカル開発環境）**:
 ```bash
-./scripts/register-client.sh "https://localhost:3443/auth/sso/callback" \
+./scripts/register-rp-dev.sh "検証用RP" "https://localhost:3443/auth/sso/callback" \
   --first-party \
-  --cors-origin "https://localhost:4443,https://localhost:3443"
+  --cors-origin "https://localhost:4443,https://localhost:3443" \
+  --signin-url "https://localhost:3443/auth/sso"
 ```
 
-#### **方法2: appコンテナ内から実行（開発・AWS環境共通）**
+このスクリプトは以下を自動で行います：
+1. Hydra OAuth2クライアントを登録
+2. 発行された `CLIENT_ID` / `CLIENT_SECRET` を取得
+3. それらを使用してIdP RelyingPartyマスタに登録
 
-**開発環境での実行**:
+### 個別登録（手動で2段階登録する場合）
+
+必要に応じて、Hydra登録とIdP RP登録を個別に実行することもできます：
+
+#### Step 1: Hydra OAuth2クライアント登録
 ```bash
-# パターンA: コンテナに入ってから実行
-docker-compose exec app bash
-./scripts/register-client-from-app.sh "https://localhost:3443/auth/sso/callback" \
-  --first-party \
-  --cors-origin "https://localhost:4443,https://localhost:3443"
-
-# パターンB: ホストOSから1行で実行
-docker-compose exec app ./scripts/register-client-from-app.sh \
-  "https://localhost:3443/auth/sso/callback" \
+./scripts/register-hydra-client.sh "https://localhost:3443/auth/sso/callback" \
   --first-party \
   --cors-origin "https://localhost:4443,https://localhost:3443"
 ```
 
-**AWS ECS環境での実行**:
+→ `CLIENT_ID` と `CLIENT_SECRET` をメモ
+
+#### Step 2: IdP RelyingPartyマスタ登録
 ```bash
-# 1. ECSコンテナにログイン
-aws ecs execute-command \
-  --cluster my-cluster \
-  --task <task-id> \
-  --container app \
-  --interactive \
-  --command "/bin/bash"
-
-# 2. コンテナ内でスクリプト実行
-bash-5.1$ ./scripts/register-client-from-app.sh "https://rp.example.com/callback" \
-  --first-party
+./scripts/register-idp-rp.sh "検証用RP" "localhost:3443" "<CLIENT_ID>" "<CLIENT_SECRET>" \
+  --signin-url "https://localhost:3443/auth/sso"
 ```
 
-> **方法1と方法2の違い**:
-> - **方法1**: docker-composeコマンドを使用（開発環境専用、シンプル）
-> - **方法2**: Hydra Admin APIを直接呼び出し（開発・AWS環境で共通利用可能）
-
-#### **登録結果の確認**
+### 登録結果の確認
 ```bash
 # 登録済みクライアント一覧
 docker-compose exec hydra hydra list oauth2-clients --endpoint http://localhost:4445

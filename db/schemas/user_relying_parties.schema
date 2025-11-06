@@ -1,0 +1,9 @@
+# -*- mode: ruby -*-
+# vi: set ft=ruby :
+create_table "user_relying_parties", id: false, charset: "utf8mb4", collation: "utf8mb4_unicode_ci", force: :cascade do |t|
+  t.bigint "user_id", null: false
+  t.bigint "relying_party_id", null: false
+  t.datetime "created_at", null: false
+  t.index ["user_id", "relying_party_id"], name: "index_user_relying_parties_on_user_and_rp", unique: true
+  t.index ["relying_party_id", "user_id"], name: "index_user_relying_parties_on_rp_and_user"
+end
