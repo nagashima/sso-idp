@@ -51,6 +51,12 @@ module Sso
           if flow_type == 'oauth2'
             # OAuth2の場合はHydraリダイレクトURL生成
             begin
+              # ★初回RPログイン記録★
+              login_request = HydraClient.get_login_request(login_challenge)
+              client_id = login_request.dig('client', 'client_id')
+              relying_party = RelyingParty.find_by(api_key: client_id)
+              record_first_rp_login(user, relying_party) if relying_party
+
               hydra_redirect = HydraService.accept_login_request(login_challenge, user.id)
               response_data[:hydra_redirect] = hydra_redirect
 
@@ -83,6 +89,14 @@ module Sso
         end
 
         private
+
+        # 初回RPログイン記録
+        def record_first_rp_login(user, relying_party)
+          unless user.relying_parties.include?(relying_party)
+            user.relying_parties << relying_party
+            Rails.logger.info "First RP login: user_id=#{user.id}, rp=#{relying_party.name} (#{relying_party.domain})"
+          end
+        end
 
         # エラーハンドリング
         def render_token_error

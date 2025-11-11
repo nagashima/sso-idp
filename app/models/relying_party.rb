@@ -1,5 +1,5 @@
 class RelyingParty < ApplicationRecord
-  has_and_belongs_to_many :users
+  has_and_belongs_to_many :users, join_table: 'user_relying_parties'
 
   validates :name, presence: true
   validates :domain, presence: true, uniqueness: true
