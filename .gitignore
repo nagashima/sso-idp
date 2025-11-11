@@ -44,9 +44,12 @@ node_modules
 /setup/*
 
 # Claude Code & MCP development environment
-.claude/
+.claude/*
 .mcp.json
-.serena/
+.serena/*
+
+# IDE
+.vscode/*
 
 # RSpec
 spec/examples.txt

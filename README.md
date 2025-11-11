@@ -10,9 +10,15 @@
 git clone [repository]
 cd sso-idp
 
-# 2. 起動（初回は自動ビルド＋DB初期化）
+# 2. 起動（初回は自動ビルド＋DB初期化＋スキーマ適用）
 docker-compose up -d
 ```
+
+起動時に以下が自動実行されます：
+- Dockerイメージのビルド
+- データベース作成（`rails db:prepare`）
+- スキーマ適用（`rake ridgepole:apply`）
+- Railsサーバー起動
 
 ### 動作確認
 - **IdP認証画面**: https://localhost:4443
@@ -189,8 +195,25 @@ docker-compose exec app bundle exec rails [command]
 **注意**: Railsはappコンテナにクリーンインストールされており、ホスト上では動作しません。appコンテナ上では必ず`bundle exec`を付けて実行してください。
 
 ### DB操作
+
+#### スキーマ管理（Ridgepole）
+
+このプロジェクトはRidgepoleでスキーマ管理しています。
+
 ```bash
-# MySQL接続
+# スキーマ適用（自動：docker-compose up 時に実行）
+# 手動で実行する場合：
+docker-compose exec app rake ridgepole:apply
+
+# 現在のスキーマをエクスポート（確認用）
+docker-compose exec app bundle exec ridgepole -c config/database.yml -E development --export
+```
+
+**スキーマファイル**: `db/schemas/Schemafile`（各テーブルは`db/schemas/*.schema`）
+
+#### MySQL接続
+```bash
+# MySQLコンソール接続
 docker-compose exec db mysql -u rails idp_development -prails_password
 ```
 
