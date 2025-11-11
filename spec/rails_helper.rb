@@ -29,13 +29,19 @@ require 'shoulda/matchers'
 #
 # Rails.root.glob('spec/support/**/*.rb').sort_by(&:to_s).each { |f| require f }
 
-# Ensures that the test database schema matches the current schema file.
-# If there are pending migrations it will invoke `db:test:prepare` to
-# recreate the test database by loading the schema.
-# If you are not using ActiveRecord, you can remove these lines.
+# Ensures that the test database schema is up-to-date using Ridgepole.
+# This replaces the standard `maintain_test_schema!` which relies on migrations.
+# Since we use Ridgepole for schema management, we check if tables exist
+# and run ridgepole:apply if needed.
 begin
-  ActiveRecord::Migration.maintain_test_schema!
-rescue ActiveRecord::PendingMigrationError => e
+  unless ActiveRecord::Base.connection.tables.include?('users')
+    puts "⚠️  Test database tables not found. Running ridgepole:apply..."
+    unless system("RAILS_ENV=test bundle exec rake ridgepole:apply")
+      abort "Failed to apply Ridgepole schema to test database"
+    end
+    puts "✅ Test database schema applied successfully"
+  end
+rescue => e
   abort e.to_s.strip
 end
 RSpec.configure do |config|
