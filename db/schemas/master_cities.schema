@@ -1,0 +1,20 @@
+# -*- mode: ruby -*-
+# vi: set ft=ruby :
+create_table "master_cities", charset: "utf8mb4", collation: "utf8mb4_unicode_ci", force: :cascade do |t|
+  t.bigint "master_prefecture_id", null: false
+  t.string "name", null: false
+  t.string "kana_name", null: false
+  t.string "county_name"
+  t.string "kana_county_name"
+  t.float "latitude", limit: 53, null: false
+  t.float "longitude", limit: 53, null: false
+  t.string "search_text", null: false
+  t.integer "ordinance_designated", limit: 1, default: 0, null: false
+  t.bigint "ward_parent_master_city_id"
+  t.datetime "created_at", null: false
+  t.datetime "updated_at", null: false
+  t.index ["master_prefecture_id"], name: "index_master_cities_on_master_prefecture_id"
+  t.index ["ward_parent_master_city_id"], name: "index_master_cities_on_ward_parent_master_city_id"
+end
+
+add_foreign_key "master_cities", "master_prefectures"

@@ -185,8 +185,8 @@ docker-compose exec app bundle exec rails db:migrate
 # データベースリセット
 docker-compose exec app bundle exec rails db:reset
 
-# テスト実行
-docker-compose exec app bundle exec rspec
+# テスト実行（詳細は「🧪 テスト」セクション参照）
+docker-compose run --rm -e RAILS_ENV=test app bundle exec rspec
 
 # その他のRailsコマンド
 docker-compose exec app bundle exec rails [command]
@@ -248,6 +248,55 @@ docker-compose exec valkey valkey-cli -a valkey_password FLUSHALL
 ---
 
 ## 🧪 テスト
+
+### RSpecテスト実行
+
+#### テスト環境の自動セットアップ
+
+`docker-compose up -d`実行時に、以下が自動的にセットアップされます：
+- test環境のデータベース作成（`idp_test`）
+- スキーマ適用（7テーブル）
+- マスターデータ投入（都道府県47件、市区町村1,918件）
+
+#### 推奨実行方法（メモリ不足回避）
+
+**重要**: `docker-compose exec`ではなく`docker-compose run`を使用してください。
+foremanプロセスと同時実行するとメモリ不足でコンテナが落ちる場合があります。
+
+```bash
+# Unit test（models/services）- 高速、推奨
+docker-compose run --rm -e RAILS_ENV=test app bundle exec rspec spec/models spec/services
+
+# Request test（統合テスト）
+docker-compose run --rm -e RAILS_ENV=test app bundle exec rspec spec/requests
+
+# System test（E2Eテスト）
+docker-compose run --rm -e RAILS_ENV=test app bundle exec rspec spec/system
+
+# 全テスト実行
+docker-compose run --rm -e RAILS_ENV=test app bundle exec rspec
+
+# 特定のファイルのみ
+docker-compose run --rm -e RAILS_ENV=test app bundle exec rspec spec/models/user_spec.rb
+```
+
+#### テスト実行の仕組み
+
+- `docker-compose run`: 新しい一時的なコンテナを起動（RSpec実行専用）
+- `--rm`: テスト終了後に自動削除
+- `-e RAILS_ENV=test`: test環境を指定
+- 既存のappコンテナ（foreman起動中）には影響なし
+
+#### testDBのリセット
+
+```bash
+# testDBを削除してコンテナ再起動（自動再セットアップ）
+docker-compose down
+docker-compose exec db mysql -u rails -prails_password -e "DROP DATABASE IF EXISTS idp_test;"
+docker-compose up -d
+```
+
+---
 
 ### OAuth2フローテスト（外部RPから）
 1. 外部RPアプリケーション用クライアントを登録

@@ -39,8 +39,7 @@ RSpec.describe User, type: :model do
       }
     end
 
-
-
+    context "名前のバリデーション" do
       include_examples "invalid user validation", {
         name: "",
         email: "test@example.com",

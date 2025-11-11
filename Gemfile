@@ -9,6 +9,7 @@ gem "rails", "~> 8.0.3"
 gem "mysql2", "~> 0.5.7"
 gem "puma", "~> 7.1"
 gem "ridgepole"
+gem "seed-fu"
 
 # Core Rails features
 gem "jbuilder"

@@ -51,6 +51,10 @@ services:
       bundle check || bundle install &&
       bundle exec rails db:prepare &&
       bundle exec rake ridgepole:apply &&
+      bundle exec rake db:seed_fu &&
+      RAILS_ENV=test bundle exec rails db:prepare &&
+      RAILS_ENV=test bundle exec rake ridgepole:apply &&
+      RAILS_ENV=test bundle exec rake db:seed_fu &&
       bundle exec foreman start -f Procfile.dev"
 
   db:

@@ -1,6 +1,8 @@
 # -*- mode: ruby -*-
 # vi: set ft=ruby :
 require 'authentication_logs.schema'
+require 'master_cities.schema'
+require 'master_prefectures.schema'
 require 'relying_parties.schema'
 require 'signup_tickets.schema'
 require 'user_relying_parties.schema'

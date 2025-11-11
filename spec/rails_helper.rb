@@ -29,17 +29,40 @@ require 'shoulda/matchers'
 #
 # Rails.root.glob('spec/support/**/*.rb').sort_by(&:to_s).each { |f| require f }
 
-# Ensures that the test database schema is up-to-date using Ridgepole.
-# This replaces the standard `maintain_test_schema!` which relies on migrations.
-# Since we use Ridgepole for schema management, we check if tables exist
-# and run ridgepole:apply if needed.
+# Ensures that the test database is prepared before running tests.
+# Test database setup is handled automatically by docker-compose on container startup.
+# This code only verifies that the database is ready.
 begin
+  # Check test database exists
+  begin
+    ActiveRecord::Base.connection
+  rescue ActiveRecord::NoDatabaseError
+    abort <<~ERROR
+      ⚠️  Test database not found!
+      Please restart the app container to initialize the test database:
+        docker-compose restart app
+    ERROR
+  end
+
+  # Check schema is applied
   unless ActiveRecord::Base.connection.tables.include?('users')
-    puts "⚠️  Test database tables not found. Running ridgepole:apply..."
-    unless system("RAILS_ENV=test bundle exec rake ridgepole:apply")
-      abort "Failed to apply Ridgepole schema to test database"
+    abort <<~ERROR
+      ⚠️  Test database schema not found!
+      Please restart the app container to apply the schema:
+        docker-compose restart app
+    ERROR
+  end
+
+  # Check master data is loaded
+  if ActiveRecord::Base.connection.tables.include?('master_prefectures')
+    prefecture_count = ActiveRecord::Base.connection.execute('SELECT COUNT(*) FROM master_prefectures').first[0]
+    if prefecture_count.zero?
+      abort <<~ERROR
+        ⚠️  Master data not found in test database!
+        Please restart the app container to load master data:
+          docker-compose restart app
+      ERROR
     end
-    puts "✅ Test database schema applied successfully"
   end
 rescue => e
   abort e.to_s.strip
