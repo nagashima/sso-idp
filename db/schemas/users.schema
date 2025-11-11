@@ -1,22 +1,77 @@
 # -*- mode: ruby -*-
 # vi: set ft=ruby :
 create_table "users", charset: "utf8mb4", collation: "utf8mb4_unicode_ci", force: :cascade do |t|
+  # 基本情報
   t.string "email"
-  t.string "name"
+  t.string "line_user_id"
+
+  # 名前系
+  t.string "last_name", null: false
+  t.string "first_name", null: false
+  t.string "last_kana_name", null: false
+  t.string "first_kana_name", null: false
+  t.integer "has_middle_name", limit: 1, null: false, default: 0
+  t.string "middle_name"
+
+  # 生年月日・性別
   t.date "birth_date"
-  t.text "address"
+  t.integer "gender_code"
+  t.text "gender_text"
+
+  # 自宅住所
+  t.integer "home_is_address_selected_manually", limit: 1, null: false, default: 0
+  t.string "home_postal_code"
+  t.integer "home_prefecture_code"
+  t.bigint "home_master_city_id"
+  t.string "home_address_town"
+  t.string "home_address_later"
+  t.float "home_latitude", limit: 53
+  t.float "home_longitude", limit: 53
+
+  # プロフィール画像
+  t.text "profile_image_data", limit: 16777215  # mediumtext
+
+  # 連絡先
   t.string "phone_number"
-  t.string "password_digest"
-  t.string "auth_code"
-  t.datetime "auth_code_expires_at"
-  t.datetime "activated_at"
-  t.string "activation_token"
-  t.datetime "activation_expires_at"
+
+  # 就労・勤務先
+  t.integer "employment_status", limit: 1, null: false
+  t.string "workplace_name"
+  t.string "workplace_phone_number"
+  t.integer "workplace_is_address_selected_manually", limit: 1
+  t.string "workplace_postal_code"
+  t.integer "workplace_prefecture_code"
+  t.bigint "workplace_master_city_id"
+  t.string "workplace_address_town"
+  t.string "workplace_address_later"
+
+  # 認証・セキュリティ
+  t.string "encrypted_password"
+  t.integer "mail_authentication_code"
+  t.datetime "mail_authentication_expires_at"
+  t.string "mynumber_ppid"
+  t.string "reset_password_token"
+  t.datetime "reset_password_sent_at"
+
+  # ログイン履歴
+  t.datetime "current_sign_in_at"
+  t.datetime "last_sign_in_at"
+
+  # 削除フラグ
+  t.datetime "deleted_at"
+
+  # タイムスタンプ
   t.datetime "created_at", null: false
   t.datetime "updated_at", null: false
-  t.datetime "last_login_at"
-  t.index ["activation_token"], name: "index_users_on_activation_token", unique: true
+
+  # インデックス
   t.index ["email"], name: "index_users_on_email", unique: true
+  t.index ["reset_password_token"], name: "index_users_on_reset_password_token", unique: true
+  t.index ["home_master_city_id"], name: "index_users_on_home_master_city_id"
+  t.index ["workplace_master_city_id"], name: "index_users_on_workplace_master_city_id"
 end
 
+# 外部キー
+add_foreign_key "users", "master_cities", column: "home_master_city_id"
+add_foreign_key "users", "master_cities", column: "workplace_master_city_id"
 add_foreign_key "authentication_logs", "users"
