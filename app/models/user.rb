@@ -81,4 +81,9 @@ class User < ApplicationRecord
   def full_kana_name
     "#{last_kana_name} #{first_kana_name}"
   end
+
+  # アクティベーション状態（User作成時点でアクティブ）
+  def activated?
+    true
+  end
 end

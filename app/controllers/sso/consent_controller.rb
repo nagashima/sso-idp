@@ -135,7 +135,7 @@ class Sso::ConsentController < ApplicationController
 
     # profileスコープが含まれている場合
     if granted_scopes.include?('profile')
-      claims[:name] = user.name
+      claims[:name] = user.full_name
       claims[:birthdate] = user.birth_date&.strftime('%Y-%m-%d')
     end
 
@@ -146,9 +146,18 @@ class Sso::ConsentController < ApplicationController
     end
 
     # addressスコープが含まれている場合（カスタムスコープ）
-    if granted_scopes.include?('address') && user.address.present?
+    if granted_scopes.include?('address') && user.home_master_city_id.present?
+      # 住所を連結（自宅住所のみ）
+      full_address = [
+        user.home_master_city&.master_prefecture&.name,
+        user.home_master_city&.county_name,
+        user.home_master_city&.name,
+        user.home_address_town,
+        user.home_address_later
+      ].compact.join('')
+
       claims[:address] = {
-        formatted: user.address
+        formatted: full_address
       }
     end
 

@@ -20,17 +20,17 @@ module Sso
           return render_token_error unless user
 
           # 認証コード検証
-          unless user.auth_code_valid?(auth_code)
+          unless user.mail_authentication_code_valid?(auth_code)
             # 認証コード期限切れの場合は専用エラー
-            if user.auth_code.present? && user.auth_code_expires_at&.past?
+            if user.mail_authentication_code.present? && user.mail_authentication_expires_at&.past?
               return render_token_expired_error
             end
             return render_verification_error
           end
 
           # ログイン完了処理
-          user.update_last_login!
-          user.clear_auth_code!
+          user.update_last_sign_in!
+          user.clear_mail_authentication_code!
 
           # 認証トークン生成・Cookie設定
           auth_token = generate_auth_token(user)
@@ -73,14 +73,14 @@ module Sso
             end
           else
             # 通常の場合はprofileページ
-            response_data[:redirect_to] = '/profile'
+            response_data[:redirect_to] = '/users/profile'
 
             # 認証ログ: 通常ログイン成功
             AuthenticationLoggerService.log_login_success(
               user,
               request,
               login_method: 'normal',
-              redirect_to: '/profile'
+              redirect_to: '/users/profile'
             )
           end
 

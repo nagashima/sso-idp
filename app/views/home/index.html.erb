@@ -7,12 +7,12 @@
     <% if logged_in? %>
       <div data-testid="logged-in-user-info" class="bg-green-50 border border-green-200 rounded-lg p-4 mb-4">
         <p class="text-green-800">
-          <strong>ログイン中:</strong> <%= current_user.name %> (<%= current_user.email %>)
+          <strong>ログイン中:</strong> <%= current_user.full_name %> (<%= current_user.email %>)
         </p>
       </div>
-      
+
       <div class="flex gap-2">
-        <%= button_to 'ログアウト', logout_path, 
+        <%= button_to 'ログアウト', users_sign_out_path,
             method: :delete,
             form: { data: { testid: 'logout-button' } },
             class: 'flex-1 bg-red-500 hover:bg-red-600 text-white font-semibold py-2 px-4 rounded' %>
@@ -25,18 +25,18 @@
           </p>
         </div>
       <% end %>
-      
+
       <div class="bg-blue-50 border border-blue-200 rounded-lg p-4 mb-4">
         <p class="text-blue-800">
           アカウントをお持ちの方はログイン、新規の方は会員登録をしてください。
         </p>
       </div>
-      
+
       <div class="space-y-3">
-        <%= link_to 'ログイン', login_path, 
+        <%= link_to 'ログイン', users_sign_in_path,
             class: 'w-full bg-blue-500 hover:bg-blue-600 text-white font-semibold py-2 px-4 rounded text-center block' %>
-        
-        <%= link_to '新規会員登録', users_new_path, 
+
+        <%= link_to '新規会員登録', users_sign_up_path,
             class: 'w-full bg-green-500 hover:bg-green-600 text-white font-semibold py-2 px-4 rounded text-center block' %>
       </div>
     <% end %>

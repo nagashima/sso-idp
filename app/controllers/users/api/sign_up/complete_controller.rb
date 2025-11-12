@@ -37,7 +37,7 @@ module Users
             render json: {
               success: true,
               message: '会員登録が完了しました',
-              redirect_to: '/profile'
+              redirect_to: '/users/profile'
             }
           else
             render json: {

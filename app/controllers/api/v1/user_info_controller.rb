@@ -8,13 +8,25 @@ module Api
         # アクセストークンから取得したユーザー情報を返す
         user = @current_oauth_user
 
+        # 住所を連結（自宅住所のみ）
+        full_address = nil
+        if user.home_master_city_id.present?
+          full_address = [
+            user.home_master_city&.master_prefecture&.name,
+            user.home_master_city&.county_name,
+            user.home_master_city&.name,
+            user.home_address_town,
+            user.home_address_later
+          ].compact.join('')
+        end
+
         render json: {
           uid: user.id.to_s,
           email: user.email,
-          name: user.name,
+          name: user.full_name,
           birth_date: user.birth_date,
           phone_number: user.phone_number,
-          address: user.address,
+          address: full_address,
           email_verified: user.activated?
         }
       end

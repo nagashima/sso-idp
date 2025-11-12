@@ -44,7 +44,7 @@ module Sso
           return render_activation_error unless user.activated?
 
           # 2段階認証コード生成・保存
-          user.generate_auth_code!
+          user.generate_mail_authentication_code!
 
           # 認証メール送信（即座に - テスト環境対応）
           UserMailer.auth_code_email(user).deliver_now
@@ -78,7 +78,7 @@ module Sso
 
           # 開発環境のみ：認証コードを表示（デバッグ用）
           if Rails.env.development?
-            response_data[:debug_auth_code] = user.auth_code
+            response_data[:debug_auth_code] = user.mail_authentication_code
           end
 
           # レスポンス返却

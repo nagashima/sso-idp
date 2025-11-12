@@ -12,29 +12,8 @@ Rails.application.routes.draw do
   # Root
   root "home#index"
 
-  # Profile
-  get 'profile', to: 'profile#show'
-
   # Email Verification (共通エンドポイント)
   get 'verify_email/:token', to: 'verify_email#verify', as: 'verify_email'
-  
-  # Authentication Routes
-  get '/login', to: 'sessions/login#login'
-  post '/login', to: 'sessions/login#authenticate'
-  get '/login/verify', to: 'sessions/login#verification_form', as: :login_verify
-  post '/login/verify', to: 'sessions/login#verify'
-  delete '/logout', to: 'sessions/login#destroy', as: :logout
-  
-  # User Registration
-  get 'users/new', to: 'users/new#new'
-  post 'users/new/confirm', to: 'users/new#confirm'
-  get 'users/new/confirm', to: 'users/new#confirm'
-  post 'users/new/register', to: 'users/new#register'
-  get 'users/new/complete', to: 'users/new#complete'
-  
-  # Email Activation
-  get 'users/activate/:token', to: 'users/activation#activate', as: :users_activate
-  get 'users/activated', to: 'users/activation#activated', as: :users_activated
   
   # Development tools
   if Rails.env.development?
@@ -78,6 +57,8 @@ Rails.application.routes.draw do
     # ページ（エントリポイント）
     get 'sign_in', to: 'sign_in#index'
     get 'sign_up', to: 'sign_up#index'
+    delete 'sign_out', to: 'sign_out#destroy'
+    get 'profile', to: 'profile#show'
 
     # API
     namespace :api do
@@ -96,6 +77,15 @@ Rails.application.routes.draw do
 
   # API（外部提供）
   namespace :api do
+    # 共通API（内部用）
+    namespace :common do
+      # 住所検索
+      post 'address_search', to: 'address_search#index'
+      get 'address_search/prefectures', to: 'address_search#prefectures'
+      get 'address_search/cities', to: 'address_search#cities'
+    end
+
+    # RP用API（バージョン付き）
     namespace :v1 do
       get 'user_info', to: 'user_info#show'
     end

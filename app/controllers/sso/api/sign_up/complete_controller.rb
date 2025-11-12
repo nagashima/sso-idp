@@ -80,12 +80,12 @@ module Sso
             rescue HydraError => e
               Rails.logger.warn "Hydra challenge expired during signup: #{e.message}"
               # Hydra challengeが期限切れの場合は通常フローへ
-              response_data[:redirect_to] = '/profile'
+              response_data[:redirect_to] = '/users/profile'
               response_data[:notice] = '登録完了しました。RP側から再度ログインしてください。'
             end
           else
             # 通常の場合はprofileページ
-            response_data[:redirect_to] = '/profile'
+            response_data[:redirect_to] = '/users/profile'
 
             # 認証ログ: 通常会員登録成功
             AuthenticationLoggerService.log_user_registration(

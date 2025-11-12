@@ -75,32 +75,354 @@
 
       <!-- Step 4: プロフィール入力 -->
       <div id="profile-step" class="hidden">
-        <div class="space-y-4">
+        <div class="space-y-6">
+          <!-- プロフィールセクション -->
+          <div class="bg-blue-50 border-b border-blue-200 p-3 -mx-6 -mt-0">
+            <h2 class="text-base font-semibold text-gray-800">プロフィール</h2>
+          </div>
+
+          <!-- 名前 -->
+          <div class="space-y-4">
+            <label class="block text-sm font-medium text-gray-700">
+              名前 <span class="text-red-500">必須</span>
+            </label>
+            <div class="space-y-3">
+              <div>
+                <label class="block text-xs text-gray-600 mb-1">姓</label>
+                <input type="text" id="last-name"
+                       class="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500"
+                       placeholder="佐藤"
+                       required>
+              </div>
+              <div>
+                <label class="block text-xs text-gray-600 mb-1">名</label>
+                <input type="text" id="first-name"
+                       class="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500"
+                       placeholder="桜子"
+                       required>
+              </div>
+            </div>
+
+            <!-- ミドルネームチェックボックス -->
+            <div class="mt-3">
+              <label class="flex items-center">
+                <input type="checkbox" id="has-middle-name" class="mr-2">
+                <span class="text-sm text-gray-700">ミドルネームを入力する</span>
+              </label>
+            </div>
+
+            <!-- ミドルネーム入力フィールド（初期非表示） -->
+            <div id="middle-name-field" class="hidden mt-3">
+              <label class="block text-xs text-gray-600 mb-1">ミドルネーム</label>
+              <input type="text" id="middle-name"
+                     class="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500"
+                     placeholder="グレース">
+            </div>
+          </div>
+
+          <!-- 名前（ふりがな） -->
+          <div class="space-y-4">
+            <label class="block text-sm font-medium text-gray-700">
+              名前（ふりがな） <span class="text-red-500">必須</span>
+            </label>
+            <div class="space-y-3">
+              <div>
+                <label class="block text-xs text-gray-600 mb-1">姓（かな）</label>
+                <input type="text" id="last-kana-name"
+                       class="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500"
+                       placeholder="さとう"
+                       pattern="[ぁ-ん]+"
+                       required>
+              </div>
+              <div>
+                <label class="block text-xs text-gray-600 mb-1">名（かな）</label>
+                <input type="text" id="first-kana-name"
+                       class="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500"
+                       placeholder="さくらこ"
+                       pattern="[ぁ-ん]+"
+                       required>
+              </div>
+            </div>
+          </div>
+
+          <!-- 生年月日 -->
           <div class="space-y-2">
-            <label class="block text-sm font-medium text-gray-700">お名前 <span class="text-red-500">*</span></label>
-            <input type="text" id="name"
+            <label class="block text-sm font-medium text-gray-700">
+              生年月日 <span class="text-red-500">必須</span>
+            </label>
+            <input type="date" id="birth-date"
                    class="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500"
-                   placeholder="山田 太郎"
+                   value="1980-01-01"
+                   min="1900-01-01"
                    required>
           </div>
 
+          <!-- 性別 -->
           <div class="space-y-2">
-            <label class="block text-sm font-medium text-gray-700">生年月日</label>
-            <input type="date" id="birth-date"
-                   class="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500">
+            <label class="block text-sm font-medium text-gray-700">
+              性別 <span class="text-red-500">必須</span>
+            </label>
+            <div class="space-y-2">
+              <label class="flex items-center">
+                <input type="radio" name="gender" value="1" class="mr-2" required>
+                <span class="text-sm text-gray-700">男性</span>
+              </label>
+              <label class="flex items-center">
+                <input type="radio" name="gender" value="2" class="mr-2">
+                <span class="text-sm text-gray-700">女性</span>
+              </label>
+              <label class="flex items-center">
+                <input type="radio" name="gender" value="3" class="mr-2">
+                <span class="text-sm text-gray-700">指定しない</span>
+              </label>
+              <label class="flex items-center">
+                <input type="radio" name="gender" value="4" class="mr-2">
+                <span class="text-sm text-gray-700">自由記述</span>
+              </label>
+              <div id="gender-text-field" class="hidden ml-6">
+                <input type="text" id="gender-text"
+                       class="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500"
+                       placeholder="テキスト入力">
+              </div>
+            </div>
           </div>
 
+          <!-- 連絡先セクション -->
+          <div class="bg-blue-50 border-b border-blue-200 p-3 -mx-6">
+            <h2 class="text-base font-semibold text-gray-800">連絡先</h2>
+          </div>
+
+          <!-- 携帯電話 -->
           <div class="space-y-2">
-            <label class="block text-sm font-medium text-gray-700">住所</label>
-            <input type="text" id="address"
+            <label class="block text-sm font-medium text-gray-700">
+              携帯電話 <span class="text-red-500">必須</span>
+            </label>
+            <p class="text-xs text-gray-600">携帯電話をお持ちでない方は、固定電話を入力してください。</p>
+            <input type="tel" id="phone-number"
                    class="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500"
-                   placeholder="東京都渋谷区...">
+                   placeholder="08012345678"
+                   required>
+          </div>
+
+          <!-- 住所セクション -->
+          <div class="bg-blue-50 border-b border-blue-200 p-3 -mx-6">
+            <h2 class="text-base font-semibold text-gray-800">住所</h2>
+          </div>
+
+          <!-- 自動入力モード -->
+          <div id="home-auto-mode">
+            <!-- 郵便番号検索エラー時のボタン（初期非表示） -->
+            <div id="home-search-error-btn" class="hidden mb-3">
+              <button type="button" id="home-switch-to-manual-btn" class="text-blue-600 text-sm hover:underline">
+                都道府県から選択
+              </button>
+            </div>
+
+            <!-- 郵便番号 -->
+            <div class="space-y-2">
+              <label class="block text-sm font-medium text-gray-700">
+                郵便番号 <span class="text-red-500">必須</span>
+              </label>
+              <input type="text" id="home-postal-code"
+                     class="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500"
+                     placeholder="1230012"
+                     pattern="[0-9]{7}"
+                     required>
+            </div>
+
+            <!-- 都道府県・市区町村（郵便番号から自動入力） -->
+            <div class="space-y-2 mt-4">
+              <label class="block text-sm font-medium text-gray-700">都道府県・市区町村</label>
+              <p class="text-xs text-gray-600">（郵便番号から入力されます）</p>
+              <input type="text" id="home-prefecture-city-town" readonly
+                     class="w-full px-3 py-2 border border-gray-300 rounded-md bg-gray-50"
+                     placeholder="郵便番号を入力すると表示されます">
+            </div>
+          </div>
+
+          <!-- 手動入力モード -->
+          <div id="home-manual-mode" class="hidden space-y-4">
+            <!-- 自動入力に戻るボタン -->
+            <div class="mb-3">
+              <button type="button" id="home-switch-to-auto-btn" class="text-blue-600 text-sm hover:underline">
+                郵便番号で自動入力しなおす（推奨）
+              </button>
+            </div>
+            <!-- 都道府県 -->
+            <div class="space-y-2">
+              <label class="block text-sm font-medium text-gray-700">
+                都道府県 <span class="text-red-500">必須</span>
+              </label>
+              <select id="home-prefecture-select"
+                      class="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500">
+                <option value="">選択してください</option>
+              </select>
+            </div>
+
+            <!-- 市区町村 -->
+            <div class="space-y-2">
+              <label class="block text-sm font-medium text-gray-700">
+                市区町村 <span class="text-red-500">必須</span>
+              </label>
+              <select id="home-city-select"
+                      class="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500"
+                      disabled>
+                <option value="">都道府県を選択してください</option>
+              </select>
+            </div>
+          </div>
+
+          <!-- hidden fields for actual data -->
+          <input type="hidden" id="home-is-manual" value="0">
+          <input type="hidden" id="home-prefecture-code">
+          <input type="hidden" id="home-master-city-id">
+          <input type="hidden" id="home-address-town">
+
+          <!-- 番地以降 -->
+          <div class="space-y-2 mt-4">
+            <label class="block text-sm font-medium text-gray-700">
+              番地以降（建物名や部屋番号も入力） <span class="text-red-500">必須</span>
+            </label>
+            <input type="text" id="home-address-later"
+                   class="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500"
+                   placeholder="1-22-3 あずかるコーポ101号室"
+                   required>
+          </div>
+
+          <!-- 勤務先セクション -->
+          <div class="bg-blue-50 border-b border-blue-200 p-3 -mx-6">
+            <h2 class="text-base font-semibold text-gray-800">勤務先</h2>
+          </div>
+
+          <!-- 就労 -->
+          <div class="space-y-2">
+            <label class="block text-sm font-medium text-gray-700">
+              就労 <span class="text-red-500">必須</span>
+            </label>
+            <div class="space-y-2">
+              <label class="flex items-center">
+                <input type="radio" name="employment-status" value="1" class="mr-2" required>
+                <span class="text-sm text-gray-700">働いている</span>
+              </label>
+              <label class="flex items-center">
+                <input type="radio" name="employment-status" value="2" class="mr-2">
+                <span class="text-sm text-gray-700">働いていない</span>
+              </label>
+              <label class="flex items-center">
+                <input type="radio" name="employment-status" value="3" class="mr-2">
+                <span class="text-sm text-gray-700">今は答えない。スキップする。</span>
+              </label>
+            </div>
+          </div>
+
+          <!-- 勤務先詳細（就労=1の場合のみ表示） -->
+          <div id="workplace-fields" class="hidden space-y-4">
+            <div class="space-y-2">
+              <label class="block text-sm font-medium text-gray-700">
+                勤務先名 <span class="text-red-500">必須</span>
+              </label>
+              <input type="text" id="workplace-name"
+                     class="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500"
+                     placeholder="あずかる株式会社">
+            </div>
+
+            <div class="space-y-2">
+              <label class="block text-sm font-medium text-gray-700">
+                勤務先電話番号 <span class="text-red-500">必須</span>
+              </label>
+              <input type="tel" id="workplace-phone-number"
+                     class="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500"
+                     placeholder="0312345678">
+            </div>
+
+            <!-- 勤務先住所 -->
+            <div class="border-t border-gray-200 pt-4 mt-4">
+              <h3 class="text-sm font-semibold text-gray-700 mb-3">勤務先住所</h3>
+
+              <!-- 自動入力モード -->
+              <div id="workplace-auto-mode" class="space-y-4">
+                <!-- 郵便番号検索エラー時のボタン（初期非表示） -->
+                <div id="workplace-search-error-btn" class="hidden mb-3">
+                  <button type="button" id="workplace-switch-to-manual-btn" class="text-blue-600 text-sm hover:underline">
+                    都道府県から選択
+                  </button>
+                </div>
+
+                <!-- 勤務先郵便番号 -->
+                <div class="space-y-2">
+                  <label class="block text-sm font-medium text-gray-700">
+                    郵便番号 <span class="text-red-500">必須</span>
+                  </label>
+                  <input type="text" id="workplace-postal-code"
+                         class="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500"
+                         placeholder="1230012"
+                         pattern="[0-9]{7}">
+                </div>
+
+                <!-- 勤務先都道府県・市区町村 -->
+                <div class="space-y-2">
+                  <label class="block text-sm font-medium text-gray-700">都道府県・市区町村</label>
+                  <p class="text-xs text-gray-600">（郵便番号から入力されます）</p>
+                  <input type="text" id="workplace-prefecture-city-town" readonly
+                         class="w-full px-3 py-2 border border-gray-300 rounded-md bg-gray-50"
+                         placeholder="郵便番号を入力すると表示されます">
+                </div>
+              </div>
+
+              <!-- 手動入力モード -->
+              <div id="workplace-manual-mode" class="hidden space-y-4">
+                <!-- 自動入力に戻るボタン -->
+                <div class="mb-3">
+                  <button type="button" id="workplace-switch-to-auto-btn" class="text-blue-600 text-sm hover:underline">
+                    郵便番号で自動入力しなおす（推奨）
+                  </button>
+                </div>
+                <!-- 都道府県 -->
+                <div class="space-y-2">
+                  <label class="block text-sm font-medium text-gray-700">
+                    都道府県 <span class="text-red-500">必須</span>
+                  </label>
+                  <select id="workplace-prefecture-select"
+                          class="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500">
+                    <option value="">選択してください</option>
+                  </select>
+                </div>
+
+                <!-- 市区町村 -->
+                <div class="space-y-2">
+                  <label class="block text-sm font-medium text-gray-700">
+                    市区町村 <span class="text-red-500">必須</span>
+                  </label>
+                  <select id="workplace-city-select"
+                          class="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500"
+                          disabled>
+                    <option value="">都道府県を選択してください</option>
+                  </select>
+                </div>
+              </div>
+
+              <!-- hidden fields -->
+              <input type="hidden" id="workplace-is-manual" value="0">
+              <input type="hidden" id="workplace-prefecture-code">
+              <input type="hidden" id="workplace-master-city-id">
+              <input type="hidden" id="workplace-address-town">
+
+              <!-- 勤務先番地以降 -->
+              <div class="space-y-2 mt-4">
+                <label class="block text-sm font-medium text-gray-700">
+                  番地以降（建物名や部屋番号も入力） <span class="text-red-500">必須</span>
+                </label>
+                <input type="text" id="workplace-address-later"
+                       class="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500"
+                       placeholder="1-22-3 あずかるコーポ101号室">
+              </div>
+            </div>
           </div>
 
           <div class="pt-2">
             <button id="profile-btn"
                     class="w-full bg-blue-500 hover:bg-blue-600 text-white font-semibold py-2 px-4 rounded focus:outline-none focus:ring-2 focus:ring-blue-500">
-              次へ
+              入力内容の確認に進む
             </button>
           </div>
         </div>
@@ -109,32 +431,104 @@
       <!-- Step 5: 確認画面 -->
       <div id="confirm-step" class="hidden">
         <div class="space-y-4">
+          <h3 class="text-lg font-semibold text-gray-800 text-center mb-4">登録内容の確認</h3>
+
           <div class="bg-gray-50 border border-gray-200 rounded-lg p-4">
-            <h3 class="font-semibold text-gray-800 mb-3">登録内容の確認</h3>
-            <dl class="space-y-2">
-              <div class="flex">
-                <dt class="w-32 text-sm text-gray-600">メールアドレス:</dt>
-                <dd id="confirm-email" class="text-sm text-gray-800"></dd>
-              </div>
-              <div class="flex">
-                <dt class="w-32 text-sm text-gray-600">お名前:</dt>
-                <dd id="confirm-name" class="text-sm text-gray-800"></dd>
-              </div>
-              <div class="flex">
-                <dt class="w-32 text-sm text-gray-600">生年月日:</dt>
-                <dd id="confirm-birth-date" class="text-sm text-gray-800"></dd>
-              </div>
-              <div class="flex">
-                <dt class="w-32 text-sm text-gray-600">住所:</dt>
-                <dd id="confirm-address" class="text-sm text-gray-800"></dd>
-              </div>
-            </dl>
+            <!-- プロフィール -->
+            <div class="mb-4">
+              <h4 class="font-semibold text-gray-700 mb-2 text-sm border-b pb-1">プロフィール</h4>
+              <dl class="space-y-2">
+                <div class="flex">
+                  <dt class="w-32 text-sm text-gray-600">メールアドレス:</dt>
+                  <dd id="confirm-email" class="text-sm text-gray-800 flex-1"></dd>
+                </div>
+                <div class="flex">
+                  <dt class="w-32 text-sm text-gray-600">お名前:</dt>
+                  <dd id="confirm-full-name" class="text-sm text-gray-800 flex-1"></dd>
+                </div>
+                <div id="confirm-middle-name-row" class="hidden flex">
+                  <dt class="w-32 text-sm text-gray-600">ミドルネーム:</dt>
+                  <dd id="confirm-middle-name" class="text-sm text-gray-800 flex-1"></dd>
+                </div>
+                <div class="flex">
+                  <dt class="w-32 text-sm text-gray-600">ふりがな:</dt>
+                  <dd id="confirm-full-kana-name" class="text-sm text-gray-800 flex-1"></dd>
+                </div>
+                <div class="flex">
+                  <dt class="w-32 text-sm text-gray-600">生年月日:</dt>
+                  <dd id="confirm-birth-date" class="text-sm text-gray-800 flex-1"></dd>
+                </div>
+                <div class="flex">
+                  <dt class="w-32 text-sm text-gray-600">性別:</dt>
+                  <dd id="confirm-gender" class="text-sm text-gray-800 flex-1"></dd>
+                </div>
+              </dl>
+            </div>
+
+            <!-- 連絡先 -->
+            <div class="mb-4">
+              <h4 class="font-semibold text-gray-700 mb-2 text-sm border-b pb-1">連絡先</h4>
+              <dl class="space-y-2">
+                <div class="flex">
+                  <dt class="w-32 text-sm text-gray-600">携帯電話:</dt>
+                  <dd id="confirm-phone-number" class="text-sm text-gray-800 flex-1"></dd>
+                </div>
+              </dl>
+            </div>
+
+            <!-- 住所 -->
+            <div class="mb-4">
+              <h4 class="font-semibold text-gray-700 mb-2 text-sm border-b pb-1">住所</h4>
+              <dl class="space-y-2">
+                <div class="flex">
+                  <dt class="w-32 text-sm text-gray-600">郵便番号:</dt>
+                  <dd id="confirm-home-postal-code" class="text-sm text-gray-800 flex-1"></dd>
+                </div>
+                <div class="flex">
+                  <dt class="w-32 text-sm text-gray-600">住所:</dt>
+                  <dd id="confirm-home-address" class="text-sm text-gray-800 flex-1"></dd>
+                </div>
+              </dl>
+            </div>
+
+            <!-- 勤務先 -->
+            <div>
+              <h4 class="font-semibold text-gray-700 mb-2 text-sm border-b pb-1">勤務先</h4>
+              <dl class="space-y-2">
+                <div class="flex">
+                  <dt class="w-32 text-sm text-gray-600">就労状況:</dt>
+                  <dd id="confirm-employment-status" class="text-sm text-gray-800 flex-1"></dd>
+                </div>
+                <div id="confirm-workplace-section" class="hidden">
+                  <div class="flex mt-2">
+                    <dt class="w-32 text-sm text-gray-600">勤務先名:</dt>
+                    <dd id="confirm-workplace-name" class="text-sm text-gray-800 flex-1"></dd>
+                  </div>
+                  <div class="flex mt-2">
+                    <dt class="w-32 text-sm text-gray-600">勤務先電話:</dt>
+                    <dd id="confirm-workplace-phone" class="text-sm text-gray-800 flex-1"></dd>
+                  </div>
+                  <div class="flex mt-2">
+                    <dt class="w-32 text-sm text-gray-600">勤務先郵便番号:</dt>
+                    <dd id="confirm-workplace-postal-code" class="text-sm text-gray-800 flex-1"></dd>
+                  </div>
+                  <div class="flex mt-2">
+                    <dt class="w-32 text-sm text-gray-600">勤務先住所:</dt>
+                    <dd id="confirm-workplace-address" class="text-sm text-gray-800 flex-1"></dd>
+                  </div>
+                </div>
+              </dl>
+            </div>
           </div>
 
-          <div class="pt-2">
+          <div class="pt-2 space-y-3">
+            <button id="back-to-profile-btn"
+                    class="w-full bg-gray-500 hover:bg-gray-600 text-white font-semibold py-2 px-4 rounded focus:outline-none focus:ring-2 focus:ring-gray-500">
+              入力内容を修正する
+            </button>
             <button id="complete-btn"
                     class="w-full bg-green-500 hover:bg-green-600 text-white font-semibold py-2 px-4 rounded focus:outline-none focus:ring-2 focus:ring-green-500">
-              登録を完了する
+              登録を完了してマイページへ
             </button>
           </div>
         </div>
@@ -142,7 +536,6 @@
     </div>
 
     <div class="mt-4 text-center">
-      <%= link_to 'ログインはこちら', users_sign_in_path, class: "text-blue-500 hover:text-blue-600 mr-4" %>
       <%= link_to 'ホームに戻る', root_path, class: "text-blue-500 hover:text-blue-600" %>
     </div>
   </div>
@@ -195,7 +588,9 @@ document.getElementById('email-btn').addEventListener('click', async () => {
     const response = await fetch('/users/api/sign_up/email', {
       method: 'POST',
       headers: { 'Content-Type': 'application/json' },
-      body: JSON.stringify({ email })
+      body: JSON.stringify({
+        email
+      })
     });
 
     const data = await response.json();
@@ -244,23 +639,438 @@ document.getElementById('password-btn').addEventListener('click', async () => {
   }
 });
 
+// ========================================
+// 住所入力関連
+// ========================================
+
+// 自宅住所：郵便番号検索（自動入力モード）
+document.getElementById('home-postal-code').addEventListener('blur', async (e) => {
+  const postalCode = e.target.value.replace(/-/g, ''); // ハイフン除去
+  if (postalCode.length !== 7) return;
+
+  try {
+    const csrfToken = document.querySelector('meta[name="csrf-token"]').getAttribute('content');
+    const response = await fetch('/api/common/address_search', {
+      method: 'POST',
+      headers: {
+        'Content-Type': 'application/json',
+        'X-CSRF-Token': csrfToken
+      },
+      body: JSON.stringify({ postal_code: postalCode })
+    });
+
+    const data = await response.json();
+
+    if (data.status === 200 && data.results && data.results.length > 0) {
+      const result = data.results[0]; // 最初の結果を使用
+
+      if (result.masterCity && result.masterCity.id) {
+        // マスタと一致した場合
+        document.getElementById('home-prefecture-city-town').value = result.fullText;
+        document.getElementById('home-prefecture-code').value = result.masterPrefecture.id;
+        document.getElementById('home-master-city-id').value = result.masterCity.id;
+        document.getElementById('home-address-town').value = result.town;
+
+        // 成功時はエラーボタンを非表示
+        document.getElementById('home-search-error-btn').classList.add('hidden');
+      } else {
+        // マスタと不一致 - 住所情報をクリア
+        document.getElementById('home-prefecture-city-town').value = '';
+        document.getElementById('home-prefecture-code').value = '';
+        document.getElementById('home-master-city-id').value = '';
+        document.getElementById('home-address-town').value = '';
+        document.getElementById('home-address-later').value = '';
+        showError('該当する市区町村が見つかりませんでした。都道府県から選択してください。');
+        document.getElementById('home-search-error-btn').classList.remove('hidden');
+      }
+    } else {
+      // 郵便番号が見つからない - 住所情報をクリア
+      document.getElementById('home-prefecture-city-town').value = '';
+      document.getElementById('home-prefecture-code').value = '';
+      document.getElementById('home-master-city-id').value = '';
+      document.getElementById('home-address-town').value = '';
+      document.getElementById('home-address-later').value = '';
+      showError('郵便番号が見つかりませんでした。都道府県から選択してください。');
+      document.getElementById('home-search-error-btn').classList.remove('hidden');
+    }
+  } catch (error) {
+    // 通信エラー - 住所情報をクリア
+    document.getElementById('home-prefecture-city-town').value = '';
+    document.getElementById('home-prefecture-code').value = '';
+    document.getElementById('home-master-city-id').value = '';
+    document.getElementById('home-address-town').value = '';
+    document.getElementById('home-address-later').value = '';
+    showError('住所検索でエラーが発生しました。都道府県から選択してください。');
+    document.getElementById('home-search-error-btn').classList.remove('hidden');
+  }
+});
+
+// 自宅住所：自動 → 手動モード切替
+document.getElementById('home-switch-to-manual-btn').addEventListener('click', async () => {
+  const autoMode = document.getElementById('home-auto-mode');
+  const manualMode = document.getElementById('home-manual-mode');
+  const isManual = document.getElementById('home-is-manual');
+
+  // UIの切り替え
+  autoMode.classList.add('hidden');
+  manualMode.classList.remove('hidden');
+  isManual.value = '1';
+
+  // 自動入力時の値をクリア
+  document.getElementById('home-postal-code').value = '';
+  document.getElementById('home-prefecture-city-town').value = '';
+  document.getElementById('home-prefecture-code').value = '';
+  document.getElementById('home-master-city-id').value = '';
+  document.getElementById('home-address-town').value = '';
+  document.getElementById('home-address-later').value = '';
+
+  // エラーボタンを非表示
+  document.getElementById('home-search-error-btn').classList.add('hidden');
+
+  // 都道府県一覧を取得
+  await loadPrefectures('home');
+});
+
+// 自宅住所：手動 → 自動モード切替
+document.getElementById('home-switch-to-auto-btn').addEventListener('click', () => {
+  const autoMode = document.getElementById('home-auto-mode');
+  const manualMode = document.getElementById('home-manual-mode');
+  const isManual = document.getElementById('home-is-manual');
+
+  // UIの切り替え
+  autoMode.classList.remove('hidden');
+  manualMode.classList.add('hidden');
+  isManual.value = '0';
+
+  // 手動入力時の値をクリア
+  document.getElementById('home-prefecture-select').value = '';
+  document.getElementById('home-city-select').value = '';
+  document.getElementById('home-city-select').disabled = true;
+  document.getElementById('home-prefecture-code').value = '';
+  document.getElementById('home-master-city-id').value = '';
+  document.getElementById('home-address-town').value = '';
+  document.getElementById('home-address-later').value = '';
+});
+
+// 都道府県一覧取得
+async function loadPrefectures(prefix) {
+  try {
+    const response = await fetch('/api/common/address_search/prefectures');
+    const data = await response.json();
+
+    if (data.status === 200) {
+      const select = document.getElementById(`${prefix}-prefecture-select`);
+      select.innerHTML = '<option value="">選択してください</option>';
+
+      data.results.forEach(pref => {
+        const option = document.createElement('option');
+        option.value = pref.id;
+        option.textContent = pref.name;
+        select.appendChild(option);
+      });
+    }
+  } catch (error) {
+    showError('都道府県一覧の取得に失敗しました');
+  }
+}
+
+// 自宅住所：都道府県選択時 → 市区町村取得
+document.getElementById('home-prefecture-select').addEventListener('change', async (e) => {
+  const prefectureId = e.target.value;
+  const citySelect = document.getElementById('home-city-select');
+
+  if (!prefectureId) {
+    citySelect.innerHTML = '<option value="">都道府県を選択してください</option>';
+    citySelect.disabled = true;
+    document.getElementById('home-prefecture-code').value = '';
+    document.getElementById('home-master-city-id').value = '';
+    return;
+  }
+
+  // 都道府県コードを保存
+  document.getElementById('home-prefecture-code').value = prefectureId;
+
+  try {
+    const response = await fetch(`/api/common/address_search/cities?master_prefecture_id=${prefectureId}`);
+    const data = await response.json();
+
+    if (data.status === 200) {
+      citySelect.innerHTML = '<option value="">選択してください</option>';
+
+      data.results.forEach(city => {
+        const option = document.createElement('option');
+        option.value = city.id;
+        option.textContent = city.name;
+        citySelect.appendChild(option);
+      });
+
+      citySelect.disabled = false;
+    }
+  } catch (error) {
+    showError('市区町村一覧の取得に失敗しました');
+  }
+});
+
+// 自宅住所：市区町村選択時
+document.getElementById('home-city-select').addEventListener('change', (e) => {
+  document.getElementById('home-master-city-id').value = e.target.value;
+});
+
+// 勤務先住所：郵便番号検索（自動入力モード）
+document.getElementById('workplace-postal-code').addEventListener('blur', async (e) => {
+  const postalCode = e.target.value.replace(/-/g, ''); // ハイフン除去
+  if (postalCode.length !== 7) return;
+
+  try {
+    const csrfToken = document.querySelector('meta[name="csrf-token"]').getAttribute('content');
+    const response = await fetch('/api/common/address_search', {
+      method: 'POST',
+      headers: {
+        'Content-Type': 'application/json',
+        'X-CSRF-Token': csrfToken
+      },
+      body: JSON.stringify({ postal_code: postalCode })
+    });
+
+    const data = await response.json();
+
+    if (data.status === 200 && data.results && data.results.length > 0) {
+      const result = data.results[0];
+
+      if (result.masterCity && result.masterCity.id) {
+        // マスタと一致した場合
+        document.getElementById('workplace-prefecture-city-town').value = result.fullText;
+        document.getElementById('workplace-prefecture-code').value = result.masterPrefecture.id;
+        document.getElementById('workplace-master-city-id').value = result.masterCity.id;
+        document.getElementById('workplace-address-town').value = result.town;
+
+        // 成功時はエラーボタンを非表示
+        document.getElementById('workplace-search-error-btn').classList.add('hidden');
+      } else {
+        // マスタと不一致 - 住所情報をクリア
+        document.getElementById('workplace-prefecture-city-town').value = '';
+        document.getElementById('workplace-prefecture-code').value = '';
+        document.getElementById('workplace-master-city-id').value = '';
+        document.getElementById('workplace-address-town').value = '';
+        document.getElementById('workplace-address-later').value = '';
+        showError('該当する市区町村が見つかりませんでした。都道府県から選択してください。');
+        document.getElementById('workplace-search-error-btn').classList.remove('hidden');
+      }
+    } else {
+      // 郵便番号が見つからない - 住所情報をクリア
+      document.getElementById('workplace-prefecture-city-town').value = '';
+      document.getElementById('workplace-prefecture-code').value = '';
+      document.getElementById('workplace-master-city-id').value = '';
+      document.getElementById('workplace-address-town').value = '';
+      document.getElementById('workplace-address-later').value = '';
+      showError('郵便番号が見つかりませんでした。都道府県から選択してください。');
+      document.getElementById('workplace-search-error-btn').classList.remove('hidden');
+    }
+  } catch (error) {
+    // 通信エラー - 住所情報をクリア
+    document.getElementById('workplace-prefecture-city-town').value = '';
+    document.getElementById('workplace-prefecture-code').value = '';
+    document.getElementById('workplace-master-city-id').value = '';
+    document.getElementById('workplace-address-town').value = '';
+    document.getElementById('workplace-address-later').value = '';
+    showError('住所検索でエラーが発生しました。都道府県から選択してください。');
+    document.getElementById('workplace-search-error-btn').classList.remove('hidden');
+  }
+});
+
+// 勤務先住所：自動 → 手動モード切替
+document.getElementById('workplace-switch-to-manual-btn').addEventListener('click', async () => {
+  const autoMode = document.getElementById('workplace-auto-mode');
+  const manualMode = document.getElementById('workplace-manual-mode');
+  const isManual = document.getElementById('workplace-is-manual');
+
+  // UIの切り替え
+  autoMode.classList.add('hidden');
+  manualMode.classList.remove('hidden');
+  isManual.value = '1';
+
+  // 自動入力時の値をクリア
+  document.getElementById('workplace-postal-code').value = '';
+  document.getElementById('workplace-prefecture-city-town').value = '';
+  document.getElementById('workplace-prefecture-code').value = '';
+  document.getElementById('workplace-master-city-id').value = '';
+  document.getElementById('workplace-address-town').value = '';
+  document.getElementById('workplace-address-later').value = '';
+
+  // エラーボタンを非表示
+  document.getElementById('workplace-search-error-btn').classList.add('hidden');
+
+  // 都道府県一覧を取得
+  await loadPrefectures('workplace');
+});
+
+// 勤務先住所：手動 → 自動モード切替
+document.getElementById('workplace-switch-to-auto-btn').addEventListener('click', () => {
+  const autoMode = document.getElementById('workplace-auto-mode');
+  const manualMode = document.getElementById('workplace-manual-mode');
+  const isManual = document.getElementById('workplace-is-manual');
+
+  // UIの切り替え
+  autoMode.classList.remove('hidden');
+  manualMode.classList.add('hidden');
+  isManual.value = '0';
+
+  // 手動入力時の値をクリア
+  document.getElementById('workplace-prefecture-select').value = '';
+  document.getElementById('workplace-city-select').value = '';
+  document.getElementById('workplace-city-select').disabled = true;
+  document.getElementById('workplace-prefecture-code').value = '';
+  document.getElementById('workplace-master-city-id').value = '';
+  document.getElementById('workplace-address-town').value = '';
+  document.getElementById('workplace-address-later').value = '';
+});
+
+// 勤務先住所：都道府県選択時 → 市区町村取得
+document.getElementById('workplace-prefecture-select').addEventListener('change', async (e) => {
+  const prefectureId = e.target.value;
+  const citySelect = document.getElementById('workplace-city-select');
+
+  if (!prefectureId) {
+    citySelect.innerHTML = '<option value="">都道府県を選択してください</option>';
+    citySelect.disabled = true;
+    document.getElementById('workplace-prefecture-code').value = '';
+    document.getElementById('workplace-master-city-id').value = '';
+    return;
+  }
+
+  // 都道府県コードを保存
+  document.getElementById('workplace-prefecture-code').value = prefectureId;
+
+  // 市区町村一覧を取得
+  try {
+    const response = await fetch(`/api/common/address_search/cities?prefecture_id=${prefectureId}`);
+    const data = await response.json();
+
+    if (data.status === 200) {
+      citySelect.innerHTML = '<option value="">選択してください</option>';
+      data.results.forEach(city => {
+        const option = document.createElement('option');
+        option.value = city.id;
+        option.textContent = `${city.county_name || ''}${city.name}`;
+        citySelect.appendChild(option);
+      });
+      citySelect.disabled = false;
+    }
+  } catch (error) {
+    showError('市区町村一覧の取得に失敗しました');
+  }
+});
+
+// 勤務先住所：市区町村選択時
+document.getElementById('workplace-city-select').addEventListener('change', (e) => {
+  document.getElementById('workplace-master-city-id').value = e.target.value;
+});
+
+// ミドルネームチェックボックスの動作
+document.getElementById('has-middle-name').addEventListener('change', (e) => {
+  const middleNameField = document.getElementById('middle-name-field');
+  const middleNameInput = document.getElementById('middle-name');
+
+  if (e.target.checked) {
+    middleNameField.classList.remove('hidden');
+    middleNameInput.required = true;
+  } else {
+    middleNameField.classList.add('hidden');
+    middleNameInput.required = false;
+    middleNameInput.value = '';
+  }
+});
+
+// 性別=4（自由記述）選択時にテキストフィールド表示
+document.querySelectorAll('input[name="gender"]').forEach(radio => {
+  radio.addEventListener('change', (e) => {
+    const genderTextField = document.getElementById('gender-text-field');
+    const genderTextInput = document.getElementById('gender-text');
+    if (e.target.value === '4') {
+      genderTextField.classList.remove('hidden');
+      genderTextInput.required = true;
+    } else {
+      genderTextField.classList.add('hidden');
+      genderTextInput.required = false;
+      genderTextInput.value = '';
+    }
+  });
+});
+
+// 就労状況=1（働いている）選択時に勤務先フィールド表示
+document.querySelectorAll('input[name="employment-status"]').forEach(radio => {
+  radio.addEventListener('change', (e) => {
+    const workplaceFields = document.getElementById('workplace-fields');
+    const workplaceInputs = workplaceFields.querySelectorAll('input[type="text"], input[type="tel"]');
+
+    if (e.target.value === '1') {
+      workplaceFields.classList.remove('hidden');
+      // 勤務先フィールドをrequiredに
+      workplaceInputs.forEach(input => {
+        if (!input.readOnly && !input.id.includes('prefecture-city-town')) {
+          input.required = true;
+        }
+      });
+    } else {
+      workplaceFields.classList.add('hidden');
+      // requiredを解除し、値をクリア
+      workplaceInputs.forEach(input => {
+        input.required = false;
+        input.value = '';
+      });
+      // hidden fieldsもクリア
+      document.getElementById('workplace-prefecture-code').value = '';
+      document.getElementById('workplace-master-city-id').value = '';
+      document.getElementById('workplace-address-town').value = '';
+    }
+  });
+});
+
 // Step 4: プロフィール保存
 document.getElementById('profile-btn').addEventListener('click', async () => {
   hideError();
-  const name = document.getElementById('name').value;
-  const birthDate = document.getElementById('birth-date').value;
-  const address = document.getElementById('address').value;
+
+  // 新スキーマ対応のパラメータ取得
+  const homeIsManual = document.getElementById('home-is-manual').value;
+
+  const profileData = {
+    token: signupToken,
+    last_name: document.getElementById('last-name').value,
+    first_name: document.getElementById('first-name').value,
+    has_middle_name: document.getElementById('has-middle-name').checked,
+    middle_name: document.getElementById('middle-name').value || null,
+    last_kana_name: document.getElementById('last-kana-name').value,
+    first_kana_name: document.getElementById('first-kana-name').value,
+    birth_date: document.getElementById('birth-date').value,
+    gender_code: document.querySelector('input[name="gender"]:checked')?.value,
+    gender_text: document.getElementById('gender-text').value || null,
+    phone_number: document.getElementById('phone-number').value,
+    home_is_address_selected_manually: homeIsManual,
+    home_postal_code: homeIsManual === '0' ? document.getElementById('home-postal-code').value : null,
+    home_prefecture_code: document.getElementById('home-prefecture-code').value || null,
+    home_master_city_id: document.getElementById('home-master-city-id').value || null,
+    home_address_town: document.getElementById('home-address-town').value || null,
+    home_address_later: document.getElementById('home-address-later').value,
+    employment_status: document.querySelector('input[name="employment-status"]:checked')?.value
+  };
+
+  // 就労=1の場合のみ勤務先情報を追加
+  const employmentStatus = profileData.employment_status;
+  if (employmentStatus === '1') {
+    profileData.workplace_name = document.getElementById('workplace-name').value;
+    profileData.workplace_phone_number = document.getElementById('workplace-phone-number').value;
+    profileData.workplace_postal_code = document.getElementById('workplace-postal-code').value;
+    profileData.workplace_prefecture_code = document.getElementById('workplace-prefecture-code').value || null;
+    profileData.workplace_master_city_id = document.getElementById('workplace-master-city-id').value || null;
+    profileData.workplace_address_town = document.getElementById('workplace-address-town').value || null;
+    profileData.workplace_address_later = document.getElementById('workplace-address-later').value;
+  }
 
   try {
     const response = await fetch('/users/api/sign_up/profile', {
       method: 'POST',
       headers: { 'Content-Type': 'application/json' },
-      body: JSON.stringify({
-        token: signupToken,
-        name: name,
-        birth_date: birthDate,
-        address: address
-      })
+      body: JSON.stringify(profileData)
     });
 
     const data = await response.json();
@@ -268,17 +1078,118 @@ document.getElementById('profile-btn').addEventListener('click', async () => {
     if (response.ok) {
       // 確認画面に値を表示
       document.getElementById('confirm-email').textContent = document.getElementById('email').value;
-      document.getElementById('confirm-name').textContent = name;
-      document.getElementById('confirm-birth-date').textContent = birthDate || '（未入力）';
-      document.getElementById('confirm-address').textContent = address || '（未入力）';
+
+      // 名前
+      const lastName = document.getElementById('last-name').value;
+      const firstName = document.getElementById('first-name').value;
+      document.getElementById('confirm-full-name').textContent = `${lastName} ${firstName}`;
+
+      // ミドルネーム
+      const hasMiddleName = document.getElementById('has-middle-name').checked;
+      const middleNameRow = document.getElementById('confirm-middle-name-row');
+      if (hasMiddleName) {
+        const middleName = document.getElementById('middle-name').value;
+        document.getElementById('confirm-middle-name').textContent = middleName;
+        middleNameRow.classList.remove('hidden');
+      } else {
+        middleNameRow.classList.add('hidden');
+      }
+
+      // ふりがな
+      const lastKanaName = document.getElementById('last-kana-name').value;
+      const firstKanaName = document.getElementById('first-kana-name').value;
+      document.getElementById('confirm-full-kana-name').textContent = `${lastKanaName} ${firstKanaName}`;
+
+      // 生年月日
+      document.getElementById('confirm-birth-date').textContent = document.getElementById('birth-date').value;
+
+      // 性別
+      const genderCode = document.querySelector('input[name="gender"]:checked')?.value;
+      const genderLabels = { '1': '男性', '2': '女性', '3': '指定しない', '4': '自由記述' };
+      let genderText = genderLabels[genderCode] || '';
+      if (genderCode === '4') {
+        const customText = document.getElementById('gender-text').value;
+        genderText += customText ? ` (${customText})` : '';
+      }
+      document.getElementById('confirm-gender').textContent = genderText;
+
+      // 携帯電話
+      document.getElementById('confirm-phone-number').textContent = document.getElementById('phone-number').value;
+
+      // 住所
+      const homeIsManualMode = document.getElementById('home-is-manual').value === '1';
+      let homePostalCodeText = '';
+      let homePrefCityTown = '';
+
+      if (homeIsManualMode) {
+        // 手動入力モード
+        const prefectureSelect = document.getElementById('home-prefecture-select');
+        const citySelect = document.getElementById('home-city-select');
+        const prefectureName = prefectureSelect.options[prefectureSelect.selectedIndex]?.text || '';
+        const cityName = citySelect.options[citySelect.selectedIndex]?.text || '';
+        homePrefCityTown = prefectureName && cityName ? `${prefectureName} ${cityName}` : '（未入力）';
+        homePostalCodeText = '（手動入力）';
+      } else {
+        // 自動入力モード
+        homePostalCodeText = document.getElementById('home-postal-code').value;
+        homePrefCityTown = document.getElementById('home-prefecture-city-town').value || '（未入力）';
+      }
+
+      document.getElementById('confirm-home-postal-code').textContent = homePostalCodeText;
+      const homeAddressLater = document.getElementById('home-address-later').value;
+      document.getElementById('confirm-home-address').textContent = `${homePrefCityTown} ${homeAddressLater}`;
+
+      // 就労状況
+      const empStatus = document.querySelector('input[name="employment-status"]:checked')?.value;
+      const empLabels = { '1': '働いている', '2': '働いていない', '3': '今は答えない' };
+      document.getElementById('confirm-employment-status').textContent = empLabels[empStatus] || '';
+
+      // 勤務先（就労=1の場合のみ）
+      const workplaceSection = document.getElementById('confirm-workplace-section');
+      if (empStatus === '1') {
+        workplaceSection.classList.remove('hidden');
+        document.getElementById('confirm-workplace-name').textContent = document.getElementById('workplace-name').value;
+        document.getElementById('confirm-workplace-phone').textContent = document.getElementById('workplace-phone-number').value;
+
+        // 勤務先住所
+        const workplaceIsManualMode = document.getElementById('workplace-is-manual').value === '1';
+        let workplacePostalCodeText = '';
+        let workplacePrefCityTown = '';
+
+        if (workplaceIsManualMode) {
+          // 手動入力モード
+          const prefectureSelect = document.getElementById('workplace-prefecture-select');
+          const citySelect = document.getElementById('workplace-city-select');
+          const prefectureName = prefectureSelect.options[prefectureSelect.selectedIndex]?.text || '';
+          const cityName = citySelect.options[citySelect.selectedIndex]?.text || '';
+          workplacePrefCityTown = prefectureName && cityName ? `${prefectureName} ${cityName}` : '（未入力）';
+          workplacePostalCodeText = '（手動入力）';
+        } else {
+          // 自動入力モード
+          workplacePostalCodeText = document.getElementById('workplace-postal-code').value;
+          workplacePrefCityTown = document.getElementById('workplace-prefecture-city-town').value || '（未入力）';
+        }
+
+        document.getElementById('confirm-workplace-postal-code').textContent = workplacePostalCodeText;
+        const workplaceAddressLater = document.getElementById('workplace-address-later').value;
+        document.getElementById('confirm-workplace-address').textContent = `${workplacePrefCityTown} ${workplaceAddressLater}`;
+      } else {
+        workplaceSection.classList.add('hidden');
+      }
+
       showStep('confirm-step');
     } else {
-      const errorMsg = data.errors?.name?.[0] || data.errors?.base?.[0] || 'エラーが発生しました';
+      const errorMsg = data.errors?.last_name?.[0] || data.errors?.base?.[0] || 'エラーが発生しました';
       showError(errorMsg);
     }
   } catch (error) {
     showError('通信エラーが発生しました');
   }
+});
+
+// 確認画面から入力画面に戻る
+document.getElementById('back-to-profile-btn').addEventListener('click', () => {
+  showStep('profile-step');
 });
 
 // Step 5: 登録完了
@@ -295,7 +1206,12 @@ document.getElementById('complete-btn').addEventListener('click', async () => {
     const data = await response.json();
 
     if (response.ok) {
-      window.location.href = data.redirect_to || '/';
+      // OAuth2フローの場合はHydraリダイレクト
+      if (data.hydra_redirect) {
+        window.location.href = data.hydra_redirect;
+      } else {
+        window.location.href = data.redirect_to || '/';
+      }
     } else {
       const errorMsg = data.errors?.base?.[0] || 'エラーが発生しました';
       showError(errorMsg);
