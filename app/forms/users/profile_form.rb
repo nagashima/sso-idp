@@ -172,7 +172,7 @@ module Users
     def normalize_postal_code(postal_code)
       return nil if postal_code.blank?
 
-      postal_code.to_s.tr('０-９－', '0-9-').gsub('-', '')
+      postal_code.to_s.tr('０-９－ー', '0-9--').gsub('-', '')
     end
 
     # 電話番号の正規化（数字とハイフンを半角に統一、スペース・括弧を削除）
