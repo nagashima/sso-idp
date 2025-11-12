@@ -45,6 +45,7 @@ node_modules
 
 # Claude Code & MCP development environment
 .claude/*
+!.claude/memos/
 .mcp.json
 .serena/*
 
