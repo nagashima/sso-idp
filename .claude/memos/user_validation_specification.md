@@ -22,7 +22,7 @@
 
 | # | フィールド | DBカラム | 必須 | 入力形式 | 最大文字数 | 文字種 | 制限内容 | 備考 |
 |---|-----------|---------|-----|---------|----------|--------|---------|------|
-| 1 | メールアドレス | `email` | ● | 文字列 | 255 | 半角英数字/記号 | `/\A[\w+\-.]+@[a-z\d\-.]+\.[a-z]+\z/i`<br>※RFC違反も許可（病児保育と合わせる） | 登録時はトークン経由で取得 |
+| 1 | メールアドレス | `email` | ● | 文字列 | 255 | 半角英数字/記号 | `/\A[\w+\-.]+@[a-z\d\-.]+\.[a-z]+\z/i`<br>※RFC違反も許可（病児保育と合わせる） | 登録時はトークン経由で取得<br>**全角→半角変換処理あり** |
 | 2 | パスワード | `encrypted_password` | ● | 文字列 | 255 | 半角 | - 使用文字は特に制限なし（スペースのみはNG）<br>- 病児保育の新仕様と揃える | 8文字以上<br>確認用パスワードとの一致チェック |
 | 3 | 姓 | `last_name` | ● | 文字列 | 255 | 制限なし | - | - |
 | 4 | 名 | `first_name` | ● | 文字列 | 255 | 制限なし | - | - |
@@ -33,14 +33,14 @@
 | 9 | 生年月日 | `birth_date` | ● | プルダウン | - | - | - すべての項目選択必須<br>- 年：1900～今年<br>- 月：1～12<br>- 日：1～31<br>- 日付の整合性（2/30不可等）<br>- 未来日不可 | デフォルト値: 1980-01-01 |
 | 10 | 性別 | `gender_code` | ● | ラジオボタン | - | - | - 選択肢（男性/女性/指定なし/その他）<br>- 「その他」選択時、記入欄発生 | 1=男性, 2=女性, 3=指定しない, 4=自由記述 |
 | - | 性別（自由記述） | `gender_text` | △ | 文字列 | - | - | - | `gender_code=4`の場合のみ使用 |
-| 11 | 電話番号 | `phone_number` | ● | 文字列 | 255 | 半角 | - | 全角→半角変換処理あり |
+| 11 | 電話番号 | `phone_number` | ● | 文字列 | 255 | 制限なし | - 形式バリデーションなし（`presence: true`のみ）<br>- 産後ケアRPと同じ仕様 | **正規化処理あり**（SSO-IdPで追加）<br>- 全角数字→半角<br>- 全角ハイフン・長音記号→半角ハイフン<br>- スペース・括弧削除<br>- 保存形式：数字とハイフン（両方半角） |
 
 ### 2. 住所情報（自宅）
 
 | # | フィールド | DBカラム | 必須 | 入力形式 | 最大文字数 | 文字種 | 制限内容 | 備考 |
 |---|-----------|---------|-----|---------|----------|--------|---------|------|
 | 12 | 住所手動入力有無 | `home_is_address_selected_manually` | ● | - | - | - | - | tinyint(1), 0=自動, 1=手動 |
-| 13 | 郵便番号 | `home_postal_code` | △ | 文字列 | 8 | 半角数字、ハイフン | - 7桁の数字または「000-0000」の形式で入力<br>- DB保存時はハイフン除去 | **自動入力モード（`home_is_address_selected_manually=0`）の場合のみ必須** |
+| 13 | 郵便番号 | `home_postal_code` | △ | 文字列 | 8 | 半角数字、ハイフン | - 7桁の数字または「000-0000」の形式で入力<br>- DB保存時はハイフン除去 | **自動入力モード（`home_is_address_selected_manually=0`）の場合のみ必須**<br>**全角→半角変換処理あり** |
 | 14 | 都道府県コード | `home_prefecture_code` | ● | - | - | - | - | - |
 | 15 | 市区町村コード | `home_master_city_id` | ● | - | - | - | - | - |
 | 16 | 住所 町域 | `home_address_town` | - | 文字列 | 255 | 制限なし | - | **手動入力モード（`home_is_address_selected_manually=1`）では使用しない（nil）** |
@@ -52,9 +52,9 @@
 |---|-----------|---------|-----|---------|----------|--------|---------|------|
 | 18 | 就労状況 | `employment_status` | ● | ラジオボタン | - | - | 1=働いている, 2=働いていない, 3=今は答えない | tinyint(1) |
 | 19 | 勤務先名 | `workplace_name` | △ | 文字列 | 255 | 制限なし | - | **`employment_status=1`の場合のみ必須** |
-| 20 | 勤務先電話番号 | `workplace_phone_number` | △ | 文字列 | 255 | 半角 | - | **`employment_status=1`の場合のみ必須**<br>全角→半角変換処理あり |
+| 20 | 勤務先電話番号 | `workplace_phone_number` | △ | 文字列 | 255 | 制限なし | - 形式バリデーションなし（`presence: true`のみ）<br>- 産後ケアRPと同じ仕様 | **`employment_status=1`の場合のみ必須**<br>**正規化処理あり**（電話番号と同じ） |
 | 21 | 勤務先住所手動入力有無 | `workplace_is_address_selected_manually` | △ | - | - | - | - | **`employment_status=1`の場合のみ使用**<br>tinyint(1), 0=自動, 1=手動 |
-| 22 | 勤務先郵便番号 | `workplace_postal_code` | △ | 文字列 | 8 | 半角数字、ハイフン | - 7桁の数字または「000-0000」の形式で入力<br>- DB保存時はハイフン除去 | **`employment_status=1` かつ `workplace_is_address_selected_manually=0` の場合のみ必須** |
+| 22 | 勤務先郵便番号 | `workplace_postal_code` | △ | 文字列 | 8 | 半角数字、ハイフン | - 7桁の数字または「000-0000」の形式で入力<br>- DB保存時はハイフン除去 | **`employment_status=1` かつ `workplace_is_address_selected_manually=0` の場合のみ必須**<br>**全角→半角変換処理あり** |
 | 23 | 勤務先都道府県コード | `workplace_prefecture_code` | △ | - | - | - | - | **`employment_status=1`の場合のみ必須** |
 | 24 | 勤務先市区町村コード | `workplace_master_city_id` | △ | - | - | - | - | **`employment_status=1`の場合のみ必須** |
 | 25 | 勤務先住所 町域 | `workplace_address_town` | - | 文字列 | 255 | 制限なし | - | **手動入力モードでは使用しない（nil）** |
@@ -87,13 +87,14 @@ VALID_POSTAL_CODE_REGEX = /\A\d{3}-?\d{4}\z/
 - **許可形式**: `1234567` または `123-4567`
 - **保存時処理**: ハイフンを除去して7桁の数字としてDB保存
 
-### 3. 電話番号チェック (`VALID_PHONE_REGEX`)
-```ruby
-VALID_PHONE_REGEX = /\A\d{10,11}\z/
-```
+### 3. 電話番号 (正規表現チェックなし)
 - **使用箇所**: `phone_number`, `workplace_phone_number`
-- **許可形式**: 10桁または11桁の半角数字
-- **前処理**: 全角数字→半角数字に変換、ハイフン削除
+- **バリデーション**: `presence: true` のみ（産後ケアRPと同じ仕様）
+- **前処理**（SSO-IdPで追加）:
+  - 全角数字→半角数字に変換
+  - 全角ハイフン・長音記号→半角ハイフンに変換
+  - スペース・括弧を削除
+- **保存形式**: 数字とハイフン（両方半角のみ）
 
 ### 4. メールアドレスチェック (`VALID_EMAIL_REGEX`)
 ```ruby
@@ -101,6 +102,7 @@ VALID_EMAIL_REGEX = /\A[\w+\-.]+@[a-z\d\-.]+\.[a-z]+\z/i
 ```
 - **使用箇所**: `email`
 - **備考**: RFC違反も許可（病児保育と合わせる）
+- **前処理**: 全角英数字・記号→半角に変換（SSO-IdPで追加）
 
 ---
 
@@ -162,6 +164,28 @@ validates :gender_text, presence: true, if: -> { gender_code == 4 }
 - 自宅住所（郵便番号、都道府県、市区町村、番地以降）
 - 手動入力モード対応
 
+### SSO-IdPで強化する点
+
+#### 1. ミドルネームの厳密化
+- **産後ケアRP**: `has_middle_name=1`でも`middle_name`は空欄OK（モデルの`before_save`で自動調整）
+- **SSO-IdP**: `has_middle_name=1`の場合、`middle_name`は必須（フォームで検証）
+  ```ruby
+  validates :middle_name,
+    presence: { message: 'ミドルネームを入力してください' },
+    if: -> { has_middle_name == 1 }
+  ```
+
+#### 2. 正規化処理の追加
+- **産後ケアRP**: 郵便番号のハイフン除去のみ
+- **SSO-IdP**: 以下の正規化処理を追加
+  - **電話番号**: 全角→半角、長音記号→ハイフン、スペース・括弧削除
+  - **郵便番号**: 全角→半角変換 + ハイフン除去
+  - **メールアドレス**: 全角→半角変換
+
+#### 3. 住所の手動入力モード対応
+- **産後ケアRP**: `home_is_address_selected_manually`フィールドはあるがバリデーションなし
+- **SSO-IdP**: 自動入力モード（`=0`）の場合のみ郵便番号必須、手動入力モード（`=1`）では都道府県・市区町村選択
+
 ---
 
 ## Form Objectsパターン実装方針
@@ -186,8 +210,8 @@ class Form
   # 共通の正規表現パターン
   VALID_HIRAGANA_REGEX = /\A[ぁ-んー]+\z/
   VALID_POSTAL_CODE_REGEX = /\A\d{3}-?\d{4}\z/
-  VALID_PHONE_REGEX = /\A\d{10,11}\z/
   VALID_EMAIL_REGEX = /\A[\w+\-.]+@[a-z\d\-.]+\.[a-z]+\z/i
+  # 電話番号は形式チェックなし（産後ケアRPと同じ）
 
   # over ride ActiveModel::Model.initialize()
   # 文字列の数字を自動的にIntegerに変換
@@ -262,7 +286,7 @@ class Users::ProfileForm < Form
     presence: { message: '性別（自由記述）を入力してください' },
     if: -> { gender_code == 4 }
 
-  # 電話番号
+  # 電話番号（形式チェックなし、産後ケアRPと同じ）
   validates :phone_number,
     presence: { message: '携帯電話を入力してください' }
 
@@ -316,6 +340,7 @@ class Users::ProfileForm < Form
   # Userモデルへの変換
   def to_user_attributes
     attributes = {
+      email: normalize_email(email),  # メールアドレスの全角→半角変換
       last_name: last_name,
       first_name: first_name,
       has_middle_name: has_middle_name,
@@ -361,15 +386,24 @@ class Users::ProfileForm < Form
 
   private
 
-  # 郵便番号の正規化（ハイフン除去）
+  # 郵便番号の正規化（全角→半角、ハイフン除去）
   def normalize_postal_code(postal_code)
-    postal_code.to_s.gsub('-', '')
+    return nil if postal_code.blank?
+    postal_code.to_s.tr('０-９－', '0-9-').gsub('-', '')
   end
 
-  # 電話番号の正規化（全角→半角、ハイフン除去）
+  # 電話番号の正規化（数字とハイフンを半角に統一、スペース・括弧を削除）
   def normalize_phone_number(phone_number)
     return nil if phone_number.blank?
-    phone_number.to_s.tr('０-９', '0-9').gsub(/[-\s()]/, '')
+    phone_number.to_s
+      .tr('０-９－ー', '0-9--')  # 全角数字・全角ハイフン・長音記号→半角
+      .gsub(/[\s()（）]/, '')    # スペース・括弧を削除
+  end
+
+  # メールアドレスの正規化（全角→半角）
+  def normalize_email(email)
+    return nil if email.blank?
+    email.to_s.tr('０-９ａ-ｚＡ-Ｚ＠．', '0-9a-zA-Z@.')
   end
 end
 ```
