@@ -100,6 +100,60 @@ paths:
         '404':
           $ref: '#/components/responses/NotFound'
 
+    patch:
+      summary: ユーザー情報部分更新
+      description: |
+        指定したユーザーIDの情報を部分更新します。
+
+        送信されたフィールドのみ更新され、他のフィールドは変更されません。
+
+        **動作:**
+        - ID不在 → 404 Not Found
+        - 成功 → 200 OK
+        - updated_by にリクエスト元RPのIDを設定
+      operationId: updateUserPartial
+      tags:
+        - users
+      parameters:
+        - name: id
+          in: path
+          description: ユーザーID
+          required: true
+          schema:
+            type: integer
+            format: int64
+            minimum: 1
+          example: 123
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/UserUpdateRequest'
+            examples:
+              partialUpdate:
+                summary: 部分更新例（電話番号とmetadataのみ）
+                value:
+                  phone_number: "09087654321"
+                  metadata:
+                    custom_id: "RP-A-999"
+                    tags: ["vip"]
+      responses:
+        '200':
+          description: 更新成功
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/User'
+        '401':
+          $ref: '#/components/responses/Unauthorized'
+        '403':
+          $ref: '#/components/responses/Forbidden'
+        '404':
+          $ref: '#/components/responses/NotFound'
+        '422':
+          $ref: '#/components/responses/ValidationError'
+
   /users:
     get:
       summary: ユーザー検索
@@ -240,6 +294,130 @@ paths:
           $ref: '#/components/responses/Unauthorized'
         '403':
           $ref: '#/components/responses/Forbidden'
+
+    post:
+      summary: ユーザー新規作成/更新
+      description: |
+        ユーザー情報を新規作成または更新します。
+
+        **ID指定あり（更新）:**
+        - レコード存在 → 全体更新（200 OK）
+        - レコード不在 → 404 Not Found
+        - updated_by にリクエスト元RPのIDを設定
+
+        **ID指定なし（新規作成）:**
+        - 常に新規作成（INSERT）
+        - 成功 → 201 Created
+        - email/phone重複 → 409 Conflict（明示的エラー）
+        - created_by にリクエスト元RPのIDを設定
+
+        **user_relying_parties:**
+        - metadata を user_relying_parties テーブルに保存
+        - リクエスト元RPに紐づくレコードを作成/更新
+      operationId: createOrUpdateUser
+      tags:
+        - users
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/UserCreateRequest'
+            examples:
+              createNew:
+                summary: 新規作成（ID未指定）
+                value:
+                  email: newuser@example.com
+                  password: password123
+                  password_confirmation: password123
+                  last_name: 山田
+                  first_name: 太郎
+                  last_kana_name: やまだ
+                  first_kana_name: たろう
+                  has_middle_name: 0
+                  birth_date: "1990-01-01"
+                  gender_code: 1
+                  phone_number: "09012345678"
+                  home_prefecture_code: 13
+                  home_master_city_id: 131016
+                  home_address_later: 1-1-1
+                  employment_status: 1
+                  workplace_name: テスト株式会社
+                  workplace_phone_number: "0312345678"
+                  workplace_prefecture_code: 13
+                  workplace_master_city_id: 131016
+                  workplace_address_later: 2-2-2
+                  metadata:
+                    custom_id: "RP-A-001"
+                    tags: ["new"]
+              updateExisting:
+                summary: 更新（ID指定）
+                value:
+                  id: 123
+                  email: user@example.com
+                  last_name: 山田
+                  first_name: 花子
+                  last_kana_name: やまだ
+                  first_kana_name: はなこ
+                  has_middle_name: 0
+                  birth_date: "1985-05-15"
+                  gender_code: 2
+                  phone_number: "09087654321"
+                  home_prefecture_code: 13
+                  home_master_city_id: 131016
+                  home_address_later: 3-3-3
+                  employment_status: 2
+                  metadata:
+                    custom_id: "RP-A-123"
+                    tags: ["updated"]
+      responses:
+        '200':
+          description: 更新成功（ID指定時）
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/User'
+        '201':
+          description: 新規作成成功（ID未指定時）
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/User'
+        '401':
+          $ref: '#/components/responses/Unauthorized'
+        '403':
+          $ref: '#/components/responses/Forbidden'
+        '404':
+          description: ユーザーが存在しない（ID指定時）
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Error'
+              examples:
+                idNotFound:
+                  summary: 指定IDのユーザーが存在しない
+                  value:
+                    error: User not found
+                    message: 指定されたIDのユーザーは存在しません
+        '409':
+          description: email/phone重複（ID未指定時）
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Error'
+              examples:
+                emailConflict:
+                  summary: メールアドレス重複
+                  value:
+                    error: Email already exists
+                    message: このメールアドレスは既に登録されています
+                phoneConflict:
+                  summary: 電話番号重複
+                  value:
+                    error: Phone number already exists
+                    message: この電話番号は既に登録されています
+        '422':
+          $ref: '#/components/responses/ValidationError'
 
 components:
   securitySchemes:
@@ -457,6 +635,181 @@ components:
             tags: ["premium", "verified"]
             memo: "優良顧客"
 
+    UserCreateRequest:
+      type: object
+      description: ユーザー作成/更新リクエスト（POST用）
+      properties:
+        # ID（更新時のみ）
+        id:
+          type: integer
+          format: int64
+          description: ユーザーID（指定時は更新、未指定時は新規作成）
+          example: 123
+
+        # 認証情報（新規作成時必須）
+        email:
+          type: string
+          format: email
+          description: メールアドレス
+          example: user@example.com
+        password:
+          type: string
+          description: パスワード（新規作成時必須、8文字以上）
+          example: password123
+        password_confirmation:
+          type: string
+          description: パスワード確認（新規作成時必須）
+          example: password123
+
+        # プロフィール情報（必須）
+        last_name:
+          type: string
+          description: 姓
+          example: 山田
+        first_name:
+          type: string
+          description: 名
+          example: 太郎
+        last_kana_name:
+          type: string
+          description: 姓（かな、ひらがな）
+          example: やまだ
+        first_kana_name:
+          type: string
+          description: 名（かな、ひらがな）
+          example: たろう
+        has_middle_name:
+          type: integer
+          description: ミドルネーム有無（0=なし, 1=あり）
+          example: 0
+        middle_name:
+          type: string
+          nullable: true
+          description: ミドルネーム（has_middle_name=1の場合必須）
+          example: null
+        birth_date:
+          type: string
+          format: date
+          description: 生年月日
+          example: "1990-01-01"
+        gender_code:
+          type: integer
+          description: 性別コード（1=男性, 2=女性, 3=指定しない, 4=自由記述）
+          example: 1
+        gender_text:
+          type: string
+          nullable: true
+          description: 性別自由記述（gender_code=4の場合必須）
+          example: null
+        phone_number:
+          type: string
+          description: 電話番号
+          example: "09012345678"
+        home_is_address_selected_manually:
+          type: integer
+          description: 住所手動入力フラグ（0=郵便番号から自動, 1=手動選択）
+          example: 0
+        home_postal_code:
+          type: string
+          nullable: true
+          description: 自宅郵便番号
+          example: "1500001"
+        home_prefecture_code:
+          type: integer
+          description: 自宅都道府県コード
+          example: 13
+        home_master_city_id:
+          type: integer
+          format: int64
+          description: 自宅市区町村マスタID
+          example: 131016
+        home_address_town:
+          type: string
+          nullable: true
+          description: 自宅町域
+          example: 神宮前
+        home_address_later:
+          type: string
+          description: 自宅番地以降
+          example: 1-1-1
+        employment_status:
+          type: integer
+          description: 就労状況（1=働いている, 2=働いていない, 3=答えない）
+          example: 1
+        workplace_name:
+          type: string
+          nullable: true
+          description: 勤務先名（employment_status=1の場合必須）
+          example: テスト株式会社
+        workplace_phone_number:
+          type: string
+          nullable: true
+          description: 勤務先電話番号（employment_status=1の場合必須）
+          example: "0312345678"
+        workplace_is_address_selected_manually:
+          type: integer
+          nullable: true
+          description: 勤務先住所手動入力フラグ
+          example: 0
+        workplace_postal_code:
+          type: string
+          nullable: true
+          description: 勤務先郵便番号
+          example: "1000001"
+        workplace_prefecture_code:
+          type: integer
+          nullable: true
+          description: 勤務先都道府県コード
+          example: 13
+        workplace_master_city_id:
+          type: integer
+          format: int64
+          nullable: true
+          description: 勤務先市区町村マスタID
+          example: 131016
+        workplace_address_town:
+          type: string
+          nullable: true
+          description: 勤務先町域
+          example: 千代田
+        workplace_address_later:
+          type: string
+          nullable: true
+          description: 勤務先番地以降
+          example: 2-2-2
+
+        # RP固有情報
+        metadata:
+          type: object
+          description: RP固有のカスタム情報
+          additionalProperties: true
+          example:
+            custom_id: "RP-A-001"
+            tags: ["new"]
+
+    UserUpdateRequest:
+      type: object
+      description: ユーザー部分更新リクエスト（PATCH用、全フィールド任意）
+      properties:
+        # プロフィール情報（任意）
+        last_name:
+          type: string
+          example: 山田
+        first_name:
+          type: string
+          example: 花子
+        phone_number:
+          type: string
+          example: "09087654321"
+        # ... 他のフィールドも同様に任意
+        metadata:
+          type: object
+          description: RP固有のカスタム情報
+          additionalProperties: true
+          example:
+            custom_id: "RP-A-999"
+            tags: ["vip"]
+
     Error:
       type: object
       description: エラーレスポンス
@@ -471,6 +824,23 @@ components:
           type: string
           description: エラーの詳細メッセージ（オプション）
           example: 指定されたユーザーIDは存在しません
+
+    ValidationErrorResponse:
+      type: object
+      description: バリデーションエラーレスポンス
+      required:
+        - errors
+      properties:
+        errors:
+          type: object
+          description: フィールドごとのエラーメッセージ
+          additionalProperties:
+            type: array
+            items:
+              type: string
+          example:
+            last_name: ["姓を入力してください"]
+            phone_number: ["携帯電話を入力してください"]
 
   responses:
     Unauthorized:
@@ -503,3 +873,31 @@ components:
               value:
                 error: User not found
                 message: 指定されたユーザーは存在しません
+
+    Forbidden:
+      description: アクセス権限なし
+      content:
+        application/json:
+          schema:
+            $ref: '#/components/schemas/Error'
+          examples:
+            forbidden:
+              summary: アクセス権限なし
+              value:
+                error: Forbidden
+                message: このリソースへのアクセス権限がありません
+
+    ValidationError:
+      description: バリデーションエラー
+      content:
+        application/json:
+          schema:
+            $ref: '#/components/schemas/ValidationErrorResponse'
+          examples:
+            validationFailed:
+              summary: バリデーション失敗
+              value:
+                errors:
+                  last_name: ["姓を入力してください"]
+                  last_kana_name: ["姓（かな）はひらがなで入力してください"]
+                  phone_number: ["携帯電話を入力してください"]
