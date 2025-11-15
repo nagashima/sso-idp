@@ -45,9 +45,6 @@ class SignupService
     CacheService.delete_signup_cache(token)
     SignupTicketService.mark_as_used(signup_ticket)
 
-    # 5. ログ記録
-    AuthenticationLoggerService.log_user_registration(user, request)
-
     Result.new(success: true, user: user)
   rescue StandardError => e
     Rails.logger.error "SignupService.complete_registration failed: #{e.message}"

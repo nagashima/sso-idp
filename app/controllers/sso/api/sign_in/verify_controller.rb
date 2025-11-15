@@ -21,6 +21,15 @@ module Sso
 
           # 認証コード検証
           unless user.mail_authentication_code_valid?(auth_code)
+            # 失敗ログ記録
+            AuthenticationLoggerService.log_sign_in_failure(
+              identifier: user.email,
+              request: request,
+              sign_in_type: :sso,
+              failure_reason: :two_factor_failed,
+              user: user
+            )
+
             # 認証コード期限切れの場合は専用エラー
             if user.mail_authentication_code.present? && user.mail_authentication_expires_at&.past?
               return render_token_expired_error
@@ -51,22 +60,8 @@ module Sso
           if flow_type == 'oauth2'
             # OAuth2の場合はHydraリダイレクトURL生成
             begin
-              # ★初回RPログイン記録★
-              login_request = HydraClient.get_login_request(login_challenge)
-              client_id = login_request.dig('client', 'client_id')
-              relying_party = RelyingParty.find_by(api_key: client_id)
-              record_first_rp_login(user, relying_party) if relying_party
-
               hydra_redirect = HydraService.accept_login_request(login_challenge, user.id)
               response_data[:hydra_redirect] = hydra_redirect
-
-              # 認証ログ: OAuth2ログイン成功
-              AuthenticationLoggerService.log_login_success(
-                user,
-                request,
-                login_method: 'oauth2',
-                redirect_to: 'hydra_redirect'
-              )
             rescue HydraError => e
               Rails.logger.error "Hydra login accept error: #{e.message}"
               return render json: { error: 'OAuth2 processing failed' }, status: :internal_server_error
@@ -74,14 +69,6 @@ module Sso
           else
             # 通常の場合はprofileページ
             response_data[:redirect_to] = '/users/profile'
-
-            # 認証ログ: 通常ログイン成功
-            AuthenticationLoggerService.log_login_success(
-              user,
-              request,
-              login_method: 'normal',
-              redirect_to: '/users/profile'
-            )
           end
 
           # レスポンス返却
@@ -90,26 +77,18 @@ module Sso
 
         private
 
-        # 初回RPログイン記録
-        def record_first_rp_login(user, relying_party)
-          unless user.relying_parties.include?(relying_party)
-            user.relying_parties << relying_party
-            Rails.logger.info "First RP login: user_id=#{user.id}, rp=#{relying_party.name} (#{relying_party.domain})"
-          end
-        end
-
         # エラーハンドリング
         def render_token_error
-          error_message = @token_error || 'Invalid token'
+          error_message = @token_error || I18n.t('api.auth.invalid_token')
           render json: { error: error_message }, status: :bad_request
         end
 
         def render_token_expired_error
-          render json: { error: 'Token expired' }, status: :bad_request
+          render json: { error: I18n.t('api.auth.token_expired') }, status: :bad_request
         end
 
         def render_verification_error
-          render json: { error: 'Invalid verification code' }, status: :bad_request
+          render json: { error: I18n.t('api.auth.invalid_verification_code') }, status: :bad_request
         end
       end
     end

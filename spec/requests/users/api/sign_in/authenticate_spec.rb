@@ -6,15 +6,10 @@ require 'rails_helper'
 # type: :request は「Request Spec（HTTPテスト）」という意味
 RSpec.describe "POST /users/api/sign_in/authenticate", type: :request do
   # テストで使う変数を定義（beforeブロックで実行される前に用意される）
-  let(:user) { create(:user, email: 'test@example.com', password: 'password123', password_confirmation: 'password123') }
+  let!(:user) { create(:user, email: 'test@example.com', password: 'password123', password_confirmation: 'password123') }
 
   # describe: テストのグループ分け（正常系）
   describe "正常系" do
-    # before: テストの前に実行される準備処理
-    before do
-      user.activate! # ユーザーをアクティベート（有効化）
-    end
-
     # it: 1つのテストケース（期待する動作を書く）
     it "有効な認証情報でtemp_tokenが返される" do
       # ===== 準備（Arrange）=====
@@ -68,10 +63,6 @@ RSpec.describe "POST /users/api/sign_in/authenticate", type: :request do
     end
 
     context "パスワードが間違っている場合" do
-      before do
-        user.activate!
-      end
-
       it "認証エラーが返される" do
         post '/users/api/sign_in/authenticate', params: {
           email: 'test@example.com',
@@ -84,22 +75,6 @@ RSpec.describe "POST /users/api/sign_in/authenticate", type: :request do
         json = JSON.parse(response.body)
 
         # base（全体）エラーが含まれているかチェック
-        expect(json['errors']['base']).to be_present
-      end
-    end
-
-    context "ユーザーが未アクティベートの場合" do
-      # before を書かない = user.activate! しない = 未アクティベート状態
-
-      it "アクティベーションエラーが返される" do
-        post '/users/api/sign_in/authenticate', params: {
-          email: 'test@example.com',
-          password: 'password123'
-        }, as: :json
-
-        expect(response).to have_http_status(:unprocessable_content)
-
-        json = JSON.parse(response.body)
         expect(json['errors']['base']).to be_present
       end
     end

@@ -88,6 +88,9 @@ Rails.application.routes.draw do
     # RP用API（バージョン付き）
     namespace :v1 do
       get 'user_info', to: 'user_info#show'
+
+      # ユーザー情報管理API
+      resources :users, only: [:index, :show]
     end
   end
 end

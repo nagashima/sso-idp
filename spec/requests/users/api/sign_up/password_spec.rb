@@ -9,7 +9,8 @@ RSpec.describe "POST /users/api/sign_up/password", type: :request do
     it "有効なトークンとパスワードで保存される" do
       post '/users/api/sign_up/password', params: {
         token: signup_ticket.token,
-        password: 'password123'
+        password: 'password123',
+        password_confirmation: 'password123'
       }, as: :json
 
       expect(response).to have_http_status(:ok)

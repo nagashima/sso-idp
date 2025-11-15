@@ -49,13 +49,15 @@ class Sso::ConsentController < ApplicationController
       # ユーザー情報をクレームとして準備
       user_claims = build_user_claims(current_user, granted_scopes)
 
-      # 認証ログ: OAuth2手動同意
-      AuthenticationLoggerService.log_oauth2_consent(
-        current_user,
-        request,
-        client_id: consent_request.dig('client', 'client_id'),
-        scopes: granted_scopes,
-        consent_challenge: consent_challenge
+      # ユーザーとRPの関連を保存
+      rp = record_user_rp_relationship(consent_request)
+
+      # 認証ログ: SSOログイン成功
+      AuthenticationLoggerService.log_sign_in_success(
+        user: current_user,
+        request: request,
+        sign_in_type: :sso,
+        relying_party: rp
       )
 
       # 同意チャレンジを受け入れ
@@ -109,13 +111,15 @@ class Sso::ConsentController < ApplicationController
     granted_scopes = consent_request['requested_scope'] || []
     user_claims = build_user_claims(current_user, granted_scopes)
 
-    # 認証ログ: OAuth2自動同意
-    AuthenticationLoggerService.log_oauth2_consent(
-      current_user,
-      request,
-      client_id: consent_request.dig('client', 'client_id'),
-      scopes: granted_scopes,
-      consent_challenge: consent_challenge
+    # ユーザーとRPの関連を保存
+    rp = record_user_rp_relationship(consent_request)
+
+    # 認証ログ: SSOログイン成功
+    AuthenticationLoggerService.log_sign_in_success(
+      user: current_user,
+      request: request,
+      sign_in_type: :sso,
+      relying_party: rp
     )
 
     response = HydraClient.accept_consent_request(
@@ -167,5 +171,32 @@ class Sso::ConsentController < ApplicationController
     end
 
     claims
+  end
+
+  # ユーザーとRPの関連を記録
+  #
+  # @param consent_request [Hash] Hydraから取得した同意要求情報
+  # @return [RelyingParty, nil] RPオブジェクト
+  def record_user_rp_relationship(consent_request)
+    client_id = consent_request.dig('client', 'client_id')
+    return nil if client_id.blank?
+
+    # client_idからRelyingPartyを検索（api_keyがclient_idとして使われている）
+    rp = RelyingParty.find_by(api_key: client_id)
+    return nil unless rp
+
+    # UserRelyingPartyServiceでレコード作成（SSO経由はmetadata空で作成）
+    UserRelyingPartyService.find_or_create(
+      user: current_user,
+      relying_party: rp,
+      metadata: {}
+    )
+
+    rp
+  rescue StandardError => e
+    # エラーログを出力するが、SSOログイン自体は継続
+    Rails.logger.error "Failed to record user-RP relationship: #{e.message}"
+    Rails.logger.error e.backtrace.join("\n")
+    nil
   end
 end

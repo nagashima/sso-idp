@@ -6,7 +6,16 @@ RSpec.describe SignupService, type: :service do
   let(:token) { 'valid_token_12345' }
   let(:email) { 'test@example.com' }
   let(:password) { 'encrypted_password_hash' }
-  let(:profile) { { name: 'Test User', birth_date: '1990-01-01' } }
+  let(:profile) do
+    {
+      last_name: '山田',
+      first_name: '太郎',
+      last_kana_name: 'ヤマダ',
+      first_kana_name: 'タロウ',
+      employment_status: 1,
+      birth_date: '1990-01-01'
+    }
+  end
   let(:signup_ticket) { create(:signup_ticket, token: token, email: email, confirmed_at: Time.current) }
   let(:request) { double('Request', remote_ip: '127.0.0.1', user_agent: 'RSpec') }
 
@@ -19,9 +28,6 @@ RSpec.describe SignupService, type: :service do
         # キャッシュデータ準備
         CacheService.save_signup_cache(token, 'password', password)
         CacheService.save_signup_cache(token, 'profile', profile)
-
-        # AuthenticationLoggerServiceをモック
-        allow(AuthenticationLoggerService).to receive(:log_user_registration)
       end
 
       it 'Userが作成される' do
@@ -52,11 +58,6 @@ RSpec.describe SignupService, type: :service do
         SignupService.complete_registration(token: token, request: request)
 
         expect(SignupTicket.find_by(token: token)).to be_nil
-      end
-
-      it 'AuthenticationLoggerServiceが呼ばれる' do
-        expect(AuthenticationLoggerService).to receive(:log_user_registration)
-        SignupService.complete_registration(token: token, request: request)
       end
     end
 

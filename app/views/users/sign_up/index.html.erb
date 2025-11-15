@@ -1,7 +1,7 @@
 <div class="container mx-auto px-4 py-8">
   <div class="max-w-2xl mx-auto bg-white rounded-lg shadow-md p-6">
     <h1 class="text-2xl font-bold text-center text-gray-800 mb-6">
-      会員登録（新API版）
+      会員登録
     </h1>
 
     <div id="signup-form">
@@ -44,7 +44,7 @@
       <!-- Step 3: パスワード設定 -->
       <div id="password-step" class="hidden">
         <div class="space-y-4">
-          <div class="bg-green-50 border border-green-200 rounded-lg p-3 mb-4">
+          <div id="email-verified-message" class="bg-green-50 border border-green-200 rounded-lg p-3 mb-4">
             <p class="text-green-800 text-sm text-center">メールアドレスの確認が完了しました</p>
           </div>
 
@@ -439,10 +439,6 @@
               <h4 class="font-semibold text-gray-700 mb-2 text-sm border-b pb-1">プロフィール</h4>
               <dl class="space-y-2">
                 <div class="flex">
-                  <dt class="w-32 text-sm text-gray-600">メールアドレス:</dt>
-                  <dd id="confirm-email" class="text-sm text-gray-800 flex-1"></dd>
-                </div>
-                <div class="flex">
                   <dt class="w-32 text-sm text-gray-600">お名前:</dt>
                   <dd id="confirm-full-name" class="text-sm text-gray-800 flex-1"></dd>
                 </div>
@@ -567,10 +563,23 @@ function showError(message) {
   const errorText = document.getElementById('error-text');
   errorText.textContent = message;
   errorDiv.classList.remove('hidden');
+
+  // エラー表示時は成功メッセージを非表示
+  const successMessage = document.getElementById('email-verified-message');
+  if (successMessage) {
+    successMessage.classList.add('hidden');
+  }
 }
 
 function hideError() {
   document.getElementById('error-message').classList.add('hidden');
+
+  // エラー非表示時は成功メッセージを再表示（パスワードステップの場合）
+  const passwordStep = document.getElementById('password-step');
+  const successMessage = document.getElementById('email-verified-message');
+  if (successMessage && !passwordStep.classList.contains('hidden')) {
+    successMessage.classList.remove('hidden');
+  }
 }
 
 // URL にトークンがある場合はパスワード設定ステップへ
@@ -615,7 +624,7 @@ document.getElementById('password-btn').addEventListener('click', async () => {
 
   // パスワード一致確認
   if (password !== passwordConfirmation) {
-    showError('パスワードが一致しません');
+    showError('パスワードと再入力パスワードが一致しません');
     return;
   }
 
@@ -623,7 +632,7 @@ document.getElementById('password-btn').addEventListener('click', async () => {
     const response = await fetch('/users/api/sign_up/password', {
       method: 'POST',
       headers: { 'Content-Type': 'application/json' },
-      body: JSON.stringify({ token: signupToken, password })
+      body: JSON.stringify({ token: signupToken, password, password_confirmation: passwordConfirmation })
     });
 
     const data = await response.json();
@@ -631,7 +640,7 @@ document.getElementById('password-btn').addEventListener('click', async () => {
     if (response.ok) {
       showStep('profile-step');
     } else {
-      const errorMsg = data.errors?.password?.[0] || data.errors?.base?.[0] || 'エラーが発生しました';
+      const errorMsg = data.errors?.password?.[0] || data.errors?.password_confirmation?.[0] || data.errors?.base?.[0] || 'エラーが発生しました';
       showError(errorMsg);
     }
   } catch (error) {
@@ -943,7 +952,7 @@ document.getElementById('workplace-prefecture-select').addEventListener('change'
 
   // 市区町村一覧を取得
   try {
-    const response = await fetch(`/api/common/address_search/cities?prefecture_id=${prefectureId}`);
+    const response = await fetch(`/api/common/address_search/cities?master_prefecture_id=${prefectureId}`);
     const data = await response.json();
 
     if (data.status === 200) {
@@ -1057,9 +1066,11 @@ document.getElementById('profile-btn').addEventListener('click', async () => {
   // 就労=1の場合のみ勤務先情報を追加
   const employmentStatus = profileData.employment_status;
   if (employmentStatus === '1') {
+    const workplaceIsManual = document.getElementById('workplace-is-manual').value;
     profileData.workplace_name = document.getElementById('workplace-name').value;
     profileData.workplace_phone_number = document.getElementById('workplace-phone-number').value;
-    profileData.workplace_postal_code = document.getElementById('workplace-postal-code').value;
+    profileData.workplace_is_address_selected_manually = workplaceIsManual;
+    profileData.workplace_postal_code = workplaceIsManual === '0' ? document.getElementById('workplace-postal-code').value : null;
     profileData.workplace_prefecture_code = document.getElementById('workplace-prefecture-code').value || null;
     profileData.workplace_master_city_id = document.getElementById('workplace-master-city-id').value || null;
     profileData.workplace_address_town = document.getElementById('workplace-address-town').value || null;
@@ -1077,7 +1088,6 @@ document.getElementById('profile-btn').addEventListener('click', async () => {
 
     if (response.ok) {
       // 確認画面に値を表示
-      document.getElementById('confirm-email').textContent = document.getElementById('email').value;
 
       // 名前
       const lastName = document.getElementById('last-name').value;

@@ -3,9 +3,14 @@ class User < ApplicationRecord
   has_secure_password validations: false
 
   # 関連付け
-  has_and_belongs_to_many :relying_parties, join_table: 'user_relying_parties'
+  has_many :user_relying_parties, dependent: :destroy
+  has_many :relying_parties, through: :user_relying_parties
   belongs_to :home_master_city, class_name: 'Master::City', foreign_key: 'home_master_city_id', optional: true
   belongs_to :workplace_master_city, class_name: 'Master::City', foreign_key: 'workplace_master_city_id', optional: true
+
+  # API経由作成・更新の管理
+  belongs_to :created_by, class_name: 'RelyingParty', foreign_key: 'created_by', optional: true
+  belongs_to :updated_by, class_name: 'RelyingParty', foreign_key: 'updated_by', optional: true
 
   # バリデーション - 基本情報
   validates :email, format: { with: URI::MailTo::EMAIL_REGEXP }, allow_blank: true

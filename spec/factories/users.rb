@@ -3,16 +3,16 @@ FactoryBot.define do
     sequence(:email) { |n| "user#{n}@example.com" }
     password { "password123" }
     password_confirmation { "password123" }
-    name { "山田太郎" }
-    
-    trait :activated do
-      activated_at { Time.current }
-    end
-    
-    trait :with_activation_token do
-      activation_token { SecureRandom.urlsafe_base64(32) }
-      activation_expires_at { 24.hours.from_now }
-    end
+
+    # 名前系（必須）
+    last_name { "山田" }
+    first_name { "太郎" }
+    last_kana_name { "ヤマダ" }
+    first_kana_name { "タロウ" }
+    has_middle_name { 0 }
+
+    # 就労状況（必須: 1=就労中/2=求職中/3=その他）
+    employment_status { 1 }
     
     trait :with_auth_code do
       auth_code { "123456" }

@@ -1,5 +1,6 @@
 class RelyingParty < ApplicationRecord
-  has_and_belongs_to_many :users, join_table: 'user_relying_parties'
+  has_many :user_relying_parties, dependent: :destroy
+  has_many :users, through: :user_relying_parties
 
   validates :name, presence: true
   validates :domain, presence: true, uniqueness: true

@@ -3,7 +3,7 @@
 require 'rails_helper'
 
 RSpec.describe HydraService, type: :service do
-  let(:user) { create(:user, name: 'Test User', email: 'test@example.com') }
+  let(:user) { create(:user, email: 'test@example.com') }
   let(:challenge) { 'test_challenge_12345' }
 
   describe '.accept_login_request' do
@@ -80,7 +80,7 @@ RSpec.describe HydraService, type: :service do
         {
           sub: user.id.to_s,
           email: user.email,
-          name: user.name
+          name: user.full_name
         }
       end
 

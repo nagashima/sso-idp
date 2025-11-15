@@ -3,12 +3,11 @@
 require 'rails_helper'
 
 RSpec.describe "POST /sso/api/sign_in/verify", type: :request do
-  let(:user) { create(:user, email: 'test@example.com', password: 'password123', password_confirmation: 'password123') }
+  let!(:user) { create(:user, email: 'test@example.com', password: 'password123', password_confirmation: 'password123') }
 
   describe "正常系" do
     before do
-      user.activate!
-      user.generate_auth_code!
+      user.generate_mail_authentication_code!
     end
 
     context "login_challengeなし（通常WEB）" do
@@ -20,7 +19,7 @@ RSpec.describe "POST /sso/api/sign_in/verify", type: :request do
 
         post '/sso/api/sign_in/verify', params: {
           temp_token: temp_token,
-          auth_code: user.auth_code
+          auth_code: user.mail_authentication_code
         }, as: :json
 
         expect(response).to have_http_status(:ok)
@@ -29,7 +28,7 @@ RSpec.describe "POST /sso/api/sign_in/verify", type: :request do
         expect(json['auth_token']).to be_present
         expect(json['status']).to eq('authenticated')
         expect(json['flow_type']).to eq('web')
-        expect(json['redirect_to']).to eq('/profile')
+        expect(json['redirect_to']).to eq('/users/profile')
       end
     end
 
@@ -46,7 +45,7 @@ RSpec.describe "POST /sso/api/sign_in/verify", type: :request do
 
         post '/sso/api/sign_in/verify', params: {
           temp_token: temp_token,
-          auth_code: user.auth_code,
+          auth_code: user.mail_authentication_code,
           login_challenge: 'test_challenge_12345'
         }, as: :json
 
@@ -64,8 +63,7 @@ RSpec.describe "POST /sso/api/sign_in/verify", type: :request do
   describe "異常系" do
     context "認証コードが間違っている場合" do
       before do
-        user.activate!
-        user.generate_auth_code!
+        user.generate_mail_authentication_code!
       end
 
       it "検証エラーが返される" do

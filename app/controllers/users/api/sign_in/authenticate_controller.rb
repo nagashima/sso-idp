@@ -37,7 +37,19 @@ module Users
 
           # ユーザー認証
           user = authenticate_user_for_login(email, password)
-          return render_authentication_error unless user
+          unless user
+            # 失敗ログ記録
+            found_user = User.find_by(email: email)
+            failure_reason = found_user.present? ? :password_mismatch : :user_not_found
+            AuthenticationLoggerService.log_sign_in_failure(
+              identifier: email,
+              request: request,
+              sign_in_type: :web,
+              failure_reason: failure_reason,
+              user: found_user
+            )
+            return render_authentication_error
+          end
 
           # アクティベーション確認
           return render_activation_error unless user.activated?
@@ -50,14 +62,6 @@ module Users
 
           # 一時トークン生成
           temp_token = generate_temp_token(user)
-
-          # 認証ログ: ログイン開始（通常WEB）
-          # Note: OAuth2専用メソッドだが、通常WEBでも使用（client_idはnilでOK）
-          AuthenticationLoggerService.log_oauth2_login_start(
-            request,
-            client_id: nil,
-            login_challenge: nil
-          )
 
           # レスポンス構築
           response_data = {

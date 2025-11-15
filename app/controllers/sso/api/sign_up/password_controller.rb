@@ -7,31 +7,27 @@ module Sso
         # POST /sso/api/sign_up/password
         # パスワード受け取り → Valkeyに保存
         def create
-          # パラメータ取得
-          token = params[:token]
-          password = params[:password]
+          # Form Objectの初期化
+          form = Users::PasswordForm.new(
+            password: params[:password],
+            password_confirmation: params[:password_confirmation],
+            token: params[:token]
+          )
 
-          validation_errors = {}
+          # バリデーション
+          unless form.valid?
+            return render json: { errors: form.errors.messages }, status: :unprocessable_content
+          end
 
           # トークン検証
-          if token.blank?
-            validation_errors[:token] = ['トークンが必要です']
-          end
-
-          # パスワード検証
-          if password.blank?
-            validation_errors[:password] = [I18n.t('activerecord.errors.messages.blank')]
-          elsif password.length < 8
-            validation_errors[:password] = ['パスワードは8文字以上で入力してください']
-          end
-
-          # バリデーションエラーがある場合は業務的エラーとして返す
-          unless validation_errors.empty?
-            return render json: { errors: validation_errors }, status: :unprocessable_content
+          if form.token.blank?
+            return render json: {
+              errors: { token: ['トークンが必要です'] }
+            }, status: :unprocessable_content
           end
 
           # トークン有効性確認
-          signup_ticket = SignupTicketService.find_valid_ticket(token)
+          signup_ticket = SignupTicketService.find_valid_ticket(form.token)
           unless signup_ticket
             return render json: {
               errors: { token: ['無効なトークンです'] }
@@ -39,7 +35,7 @@ module Sso
           end
 
           # パスワードをValkeyに保存
-          CacheService.save_signup_cache(token, 'password', password)
+          CacheService.save_signup_cache(form.token, 'password', form.password)
 
           # レスポンス返却
           render json: {

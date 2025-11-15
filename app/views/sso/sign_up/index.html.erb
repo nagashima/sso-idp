@@ -1,7 +1,7 @@
 <div class="container mx-auto px-4 py-8">
   <div class="max-w-2xl mx-auto bg-white rounded-lg shadow-md p-6">
     <h1 class="text-2xl font-bold text-center text-gray-800 mb-6">
-      SSO会員登録（新API版）
+      SSO会員登録
     </h1>
 
     <div class="bg-blue-50 border border-blue-200 rounded-lg p-3 mb-4">
@@ -50,7 +50,7 @@
       <!-- Step 3: パスワード設定 -->
       <div id="password-step" class="hidden">
         <div class="space-y-4">
-          <div class="bg-green-50 border border-green-200 rounded-lg p-3 mb-4">
+          <div id="email-verified-message" class="bg-green-50 border border-green-200 rounded-lg p-3 mb-4">
             <p class="text-green-800 text-sm text-center">メールアドレスの確認が完了しました</p>
           </div>
 
@@ -108,6 +108,22 @@
                        required>
               </div>
             </div>
+
+            <!-- ミドルネームチェックボックス -->
+            <div class="mt-3">
+              <label class="flex items-center">
+                <input type="checkbox" id="has-middle-name" class="mr-2">
+                <span class="text-sm text-gray-700">ミドルネームを入力する</span>
+              </label>
+            </div>
+
+            <!-- ミドルネーム入力フィールド（初期非表示） -->
+            <div id="middle-name-field" class="hidden mt-3">
+              <label class="block text-xs text-gray-600 mb-1">ミドルネーム</label>
+              <input type="text" id="middle-name"
+                     class="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500"
+                     placeholder="グレース">
+            </div>
           </div>
 
           <!-- 名前（ふりがな） -->
@@ -142,6 +158,8 @@
             </label>
             <input type="date" id="birth-date"
                    class="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500"
+                   value="1980-01-01"
+                   min="1900-01-01"
                    required>
           </div>
 
@@ -197,15 +215,15 @@
             <h2 class="text-base font-semibold text-gray-800">住所</h2>
           </div>
 
-          <!-- モード切替ボタン -->
-          <div class="space-y-2">
-            <button type="button" id="home-toggle-manual-btn" class="text-blue-600 text-sm hover:underline">
-              都道府県から選択
-            </button>
-          </div>
-
           <!-- 自動入力モード -->
           <div id="home-auto-mode">
+            <!-- 郵便番号検索エラー時のボタン（初期非表示） -->
+            <div id="home-search-error-btn" class="hidden mb-3">
+              <button type="button" id="home-switch-to-manual-btn" class="text-blue-600 text-sm hover:underline">
+                都道府県から選択
+              </button>
+            </div>
+
             <!-- 郵便番号 -->
             <div class="space-y-2">
               <label class="block text-sm font-medium text-gray-700">
@@ -230,6 +248,12 @@
 
           <!-- 手動入力モード -->
           <div id="home-manual-mode" class="hidden space-y-4">
+            <!-- 自動入力に戻るボタン -->
+            <div class="mb-3">
+              <button type="button" id="home-switch-to-auto-btn" class="text-blue-600 text-sm hover:underline">
+                郵便番号で自動入力しなおす（推奨）
+              </button>
+            </div>
             <!-- 都道府県 -->
             <div class="space-y-2">
               <label class="block text-sm font-medium text-gray-700">
@@ -321,15 +345,15 @@
             <div class="border-t border-gray-200 pt-4 mt-4">
               <h3 class="text-sm font-semibold text-gray-700 mb-3">勤務先住所</h3>
 
-              <!-- モード切替ボタン -->
-              <div class="space-y-2 mb-4">
-                <button type="button" id="workplace-toggle-manual-btn" class="text-blue-600 text-sm hover:underline">
-                  都道府県から選択
-                </button>
-              </div>
-
               <!-- 自動入力モード -->
               <div id="workplace-auto-mode" class="space-y-4">
+                <!-- 郵便番号検索エラー時のボタン（初期非表示） -->
+                <div id="workplace-search-error-btn" class="hidden mb-3">
+                  <button type="button" id="workplace-switch-to-manual-btn" class="text-blue-600 text-sm hover:underline">
+                    都道府県から選択
+                  </button>
+                </div>
+
                 <!-- 勤務先郵便番号 -->
                 <div class="space-y-2">
                   <label class="block text-sm font-medium text-gray-700">
@@ -353,6 +377,12 @@
 
               <!-- 手動入力モード -->
               <div id="workplace-manual-mode" class="hidden space-y-4">
+                <!-- 自動入力に戻るボタン -->
+                <div class="mb-3">
+                  <button type="button" id="workplace-switch-to-auto-btn" class="text-blue-600 text-sm hover:underline">
+                    郵便番号で自動入力しなおす（推奨）
+                  </button>
+                </div>
                 <!-- 都道府県 -->
                 <div class="space-y-2">
                   <label class="block text-sm font-medium text-gray-700">
@@ -415,12 +445,12 @@
               <h4 class="font-semibold text-gray-700 mb-2 text-sm border-b pb-1">プロフィール</h4>
               <dl class="space-y-2">
                 <div class="flex">
-                  <dt class="w-32 text-sm text-gray-600">メールアドレス:</dt>
-                  <dd id="confirm-email" class="text-sm text-gray-800 flex-1"></dd>
-                </div>
-                <div class="flex">
                   <dt class="w-32 text-sm text-gray-600">お名前:</dt>
                   <dd id="confirm-full-name" class="text-sm text-gray-800 flex-1"></dd>
+                </div>
+                <div id="confirm-middle-name-row" class="hidden flex">
+                  <dt class="w-32 text-sm text-gray-600">ミドルネーム:</dt>
+                  <dd id="confirm-middle-name" class="text-sm text-gray-800 flex-1"></dd>
                 </div>
                 <div class="flex">
                   <dt class="w-32 text-sm text-gray-600">ふりがな:</dt>
@@ -493,7 +523,11 @@
             </div>
           </div>
 
-          <div class="pt-2">
+          <div class="pt-2 space-y-3">
+            <button id="back-to-profile-btn"
+                    class="w-full bg-gray-500 hover:bg-gray-600 text-white font-semibold py-2 px-4 rounded focus:outline-none focus:ring-2 focus:ring-gray-500">
+              入力内容を修正する
+            </button>
             <button id="complete-btn"
                     class="w-full bg-green-500 hover:bg-green-600 text-white font-semibold py-2 px-4 rounded focus:outline-none focus:ring-2 focus:ring-green-500">
               登録を完了してアプリにログイン
@@ -537,10 +571,23 @@ function showError(message) {
   const errorText = document.getElementById('error-text');
   errorText.textContent = message;
   errorDiv.classList.remove('hidden');
+
+  // エラー表示時は成功メッセージを非表示
+  const successMessage = document.getElementById('email-verified-message');
+  if (successMessage) {
+    successMessage.classList.add('hidden');
+  }
 }
 
 function hideError() {
   document.getElementById('error-message').classList.add('hidden');
+
+  // エラー非表示時は成功メッセージを再表示（パスワードステップの場合）
+  const passwordStep = document.getElementById('password-step');
+  const successMessage = document.getElementById('email-verified-message');
+  if (successMessage && !passwordStep.classList.contains('hidden')) {
+    successMessage.classList.remove('hidden');
+  }
 }
 
 // URL にトークンがある場合はパスワード設定ステップへ
@@ -586,7 +633,7 @@ document.getElementById('password-btn').addEventListener('click', async () => {
 
   // パスワード一致確認
   if (password !== passwordConfirmation) {
-    showError('パスワードが一致しません');
+    showError('パスワードと再入力パスワードが一致しません');
     return;
   }
 
@@ -594,7 +641,7 @@ document.getElementById('password-btn').addEventListener('click', async () => {
     const response = await fetch('/sso/api/sign_up/password', {
       method: 'POST',
       headers: { 'Content-Type': 'application/json' },
-      body: JSON.stringify({ token: signupToken, password })
+      body: JSON.stringify({ token: signupToken, password, password_confirmation: passwordConfirmation })
     });
 
     const data = await response.json();
@@ -602,7 +649,7 @@ document.getElementById('password-btn').addEventListener('click', async () => {
     if (response.ok) {
       showStep('profile-step');
     } else {
-      const errorMsg = data.errors?.password?.[0] || data.errors?.base?.[0] || 'エラーが発生しました';
+      const errorMsg = data.errors?.password?.[0] || data.errors?.password_confirmation?.[0] || data.errors?.base?.[0] || 'エラーが発生しました';
       showError(errorMsg);
     }
   } catch (error) {
@@ -641,49 +688,86 @@ document.getElementById('home-postal-code').addEventListener('blur', async (e) =
         document.getElementById('home-prefecture-code').value = result.masterPrefecture.id;
         document.getElementById('home-master-city-id').value = result.masterCity.id;
         document.getElementById('home-address-town').value = result.town;
+
+        // 成功時はエラーボタンを非表示
+        document.getElementById('home-search-error-btn').classList.add('hidden');
       } else {
-        // マスタと不一致
+        // マスタと不一致 - 住所情報をクリア
+        document.getElementById('home-prefecture-city-town').value = '';
+        document.getElementById('home-prefecture-code').value = '';
+        document.getElementById('home-master-city-id').value = '';
+        document.getElementById('home-address-town').value = '';
+        document.getElementById('home-address-later').value = '';
         showError('該当する市区町村が見つかりませんでした。都道府県から選択してください。');
+        document.getElementById('home-search-error-btn').classList.remove('hidden');
       }
     } else {
-      // 郵便番号が見つからない
+      // 郵便番号が見つからない - 住所情報をクリア
+      document.getElementById('home-prefecture-city-town').value = '';
+      document.getElementById('home-prefecture-code').value = '';
+      document.getElementById('home-master-city-id').value = '';
+      document.getElementById('home-address-town').value = '';
+      document.getElementById('home-address-later').value = '';
       showError('郵便番号が見つかりませんでした。都道府県から選択してください。');
+      document.getElementById('home-search-error-btn').classList.remove('hidden');
     }
   } catch (error) {
-    showError('住所検索でエラーが発生しました。都道府県から選択してください。');
-  }
-});
-
-// 自宅住所：手動モード切替
-document.getElementById('home-toggle-manual-btn').addEventListener('click', async () => {
-  const autoMode = document.getElementById('home-auto-mode');
-  const manualMode = document.getElementById('home-manual-mode');
-  const isManual = document.getElementById('home-is-manual');
-  const toggleBtn = document.getElementById('home-toggle-manual-btn');
-
-  if (isManual.value === '0') {
-    // 自動 → 手動
-    autoMode.classList.add('hidden');
-    manualMode.classList.remove('hidden');
-    isManual.value = '1';
-    toggleBtn.textContent = '郵便番号を自動入力しなおす';
-
-    // 都道府県一覧を取得
-    await loadPrefectures('home');
-  } else {
-    // 手動 → 自動
-    autoMode.classList.remove('hidden');
-    manualMode.classList.add('hidden');
-    isManual.value = '0';
-    toggleBtn.textContent = '都道府県から選択';
-
-    // フィールドをクリア
-    document.getElementById('home-postal-code').value = '';
+    // 通信エラー - 住所情報をクリア
     document.getElementById('home-prefecture-city-town').value = '';
     document.getElementById('home-prefecture-code').value = '';
     document.getElementById('home-master-city-id').value = '';
     document.getElementById('home-address-town').value = '';
+    document.getElementById('home-address-later').value = '';
+    showError('住所検索でエラーが発生しました。都道府県から選択してください。');
+    document.getElementById('home-search-error-btn').classList.remove('hidden');
   }
+});
+
+// 自宅住所：自動 → 手動モード切替
+document.getElementById('home-switch-to-manual-btn').addEventListener('click', async () => {
+  const autoMode = document.getElementById('home-auto-mode');
+  const manualMode = document.getElementById('home-manual-mode');
+  const isManual = document.getElementById('home-is-manual');
+
+  // UIの切り替え
+  autoMode.classList.add('hidden');
+  manualMode.classList.remove('hidden');
+  isManual.value = '1';
+
+  // 自動入力時の値をクリア
+  document.getElementById('home-postal-code').value = '';
+  document.getElementById('home-prefecture-city-town').value = '';
+  document.getElementById('home-prefecture-code').value = '';
+  document.getElementById('home-master-city-id').value = '';
+  document.getElementById('home-address-town').value = '';
+  document.getElementById('home-address-later').value = '';
+
+  // エラーボタンを非表示
+  document.getElementById('home-search-error-btn').classList.add('hidden');
+
+  // 都道府県一覧を取得
+  await loadPrefectures('home');
+});
+
+// 自宅住所：手動 → 自動モード切替
+document.getElementById('home-switch-to-auto-btn').addEventListener('click', () => {
+  const autoMode = document.getElementById('home-auto-mode');
+  const manualMode = document.getElementById('home-manual-mode');
+  const isManual = document.getElementById('home-is-manual');
+
+  // UIの切り替え
+  autoMode.classList.remove('hidden');
+  manualMode.classList.add('hidden');
+  isManual.value = '0';
+
+  // 手動入力時の値をクリア
+  document.getElementById('home-prefecture-select').value = '';
+  document.getElementById('home-city-select').value = '';
+  document.getElementById('home-city-select').disabled = true;
+  document.getElementById('home-prefecture-code').value = '';
+  document.getElementById('home-master-city-id').value = '';
+  document.getElementById('home-address-town').value = '';
+  document.getElementById('home-address-later').value = '';
 });
 
 // 都道府県一覧取得
@@ -750,6 +834,171 @@ document.getElementById('home-city-select').addEventListener('change', (e) => {
   document.getElementById('home-master-city-id').value = e.target.value;
 });
 
+// 勤務先住所：郵便番号検索（自動入力モード）
+document.getElementById('workplace-postal-code').addEventListener('blur', async (e) => {
+  const postalCode = e.target.value.replace(/-/g, ''); // ハイフン除去
+  if (postalCode.length !== 7) return;
+
+  try {
+    const csrfToken = document.querySelector('meta[name="csrf-token"]').getAttribute('content');
+    const response = await fetch('/api/common/address_search', {
+      method: 'POST',
+      headers: {
+        'Content-Type': 'application/json',
+        'X-CSRF-Token': csrfToken
+      },
+      body: JSON.stringify({ postal_code: postalCode })
+    });
+
+    const data = await response.json();
+
+    if (data.status === 200 && data.results && data.results.length > 0) {
+      const result = data.results[0];
+
+      if (result.masterCity && result.masterCity.id) {
+        // マスタと一致した場合
+        document.getElementById('workplace-prefecture-city-town').value = result.fullText;
+        document.getElementById('workplace-prefecture-code').value = result.masterPrefecture.id;
+        document.getElementById('workplace-master-city-id').value = result.masterCity.id;
+        document.getElementById('workplace-address-town').value = result.town;
+
+        // 成功時はエラーボタンを非表示
+        document.getElementById('workplace-search-error-btn').classList.add('hidden');
+      } else {
+        // マスタと不一致 - 住所情報をクリア
+        document.getElementById('workplace-prefecture-city-town').value = '';
+        document.getElementById('workplace-prefecture-code').value = '';
+        document.getElementById('workplace-master-city-id').value = '';
+        document.getElementById('workplace-address-town').value = '';
+        document.getElementById('workplace-address-later').value = '';
+        showError('該当する市区町村が見つかりませんでした。都道府県から選択してください。');
+        document.getElementById('workplace-search-error-btn').classList.remove('hidden');
+      }
+    } else {
+      // 郵便番号が見つからない - 住所情報をクリア
+      document.getElementById('workplace-prefecture-city-town').value = '';
+      document.getElementById('workplace-prefecture-code').value = '';
+      document.getElementById('workplace-master-city-id').value = '';
+      document.getElementById('workplace-address-town').value = '';
+      document.getElementById('workplace-address-later').value = '';
+      showError('郵便番号が見つかりませんでした。都道府県から選択してください。');
+      document.getElementById('workplace-search-error-btn').classList.remove('hidden');
+    }
+  } catch (error) {
+    // 通信エラー - 住所情報をクリア
+    document.getElementById('workplace-prefecture-city-town').value = '';
+    document.getElementById('workplace-prefecture-code').value = '';
+    document.getElementById('workplace-master-city-id').value = '';
+    document.getElementById('workplace-address-town').value = '';
+    document.getElementById('workplace-address-later').value = '';
+    showError('住所検索でエラーが発生しました。都道府県から選択してください。');
+    document.getElementById('workplace-search-error-btn').classList.remove('hidden');
+  }
+});
+
+// 勤務先住所：自動 → 手動モード切替
+document.getElementById('workplace-switch-to-manual-btn').addEventListener('click', async () => {
+  const autoMode = document.getElementById('workplace-auto-mode');
+  const manualMode = document.getElementById('workplace-manual-mode');
+  const isManual = document.getElementById('workplace-is-manual');
+
+  // UIの切り替え
+  autoMode.classList.add('hidden');
+  manualMode.classList.remove('hidden');
+  isManual.value = '1';
+
+  // 自動入力時の値をクリア
+  document.getElementById('workplace-postal-code').value = '';
+  document.getElementById('workplace-prefecture-city-town').value = '';
+  document.getElementById('workplace-prefecture-code').value = '';
+  document.getElementById('workplace-master-city-id').value = '';
+  document.getElementById('workplace-address-town').value = '';
+  document.getElementById('workplace-address-later').value = '';
+
+  // エラーボタンを非表示
+  document.getElementById('workplace-search-error-btn').classList.add('hidden');
+
+  // 都道府県一覧を取得
+  await loadPrefectures('workplace');
+});
+
+// 勤務先住所：手動 → 自動モード切替
+document.getElementById('workplace-switch-to-auto-btn').addEventListener('click', () => {
+  const autoMode = document.getElementById('workplace-auto-mode');
+  const manualMode = document.getElementById('workplace-manual-mode');
+  const isManual = document.getElementById('workplace-is-manual');
+
+  // UIの切り替え
+  autoMode.classList.remove('hidden');
+  manualMode.classList.add('hidden');
+  isManual.value = '0';
+
+  // 手動入力時の値をクリア
+  document.getElementById('workplace-prefecture-select').value = '';
+  document.getElementById('workplace-city-select').value = '';
+  document.getElementById('workplace-city-select').disabled = true;
+  document.getElementById('workplace-prefecture-code').value = '';
+  document.getElementById('workplace-master-city-id').value = '';
+  document.getElementById('workplace-address-town').value = '';
+  document.getElementById('workplace-address-later').value = '';
+});
+
+// 勤務先住所：都道府県選択時 → 市区町村取得
+document.getElementById('workplace-prefecture-select').addEventListener('change', async (e) => {
+  const prefectureId = e.target.value;
+  const citySelect = document.getElementById('workplace-city-select');
+
+  if (!prefectureId) {
+    citySelect.innerHTML = '<option value="">都道府県を選択してください</option>';
+    citySelect.disabled = true;
+    document.getElementById('workplace-prefecture-code').value = '';
+    document.getElementById('workplace-master-city-id').value = '';
+    return;
+  }
+
+  // 都道府県コードを保存
+  document.getElementById('workplace-prefecture-code').value = prefectureId;
+
+  // 市区町村一覧を取得
+  try {
+    const response = await fetch(`/api/common/address_search/cities?master_prefecture_id=${prefectureId}`);
+    const data = await response.json();
+
+    if (data.status === 200) {
+      citySelect.innerHTML = '<option value="">選択してください</option>';
+      data.results.forEach(city => {
+        const option = document.createElement('option');
+        option.value = city.id;
+        option.textContent = `${city.county_name || ''}${city.name}`;
+        citySelect.appendChild(option);
+      });
+      citySelect.disabled = false;
+    }
+  } catch (error) {
+    showError('市区町村一覧の取得に失敗しました');
+  }
+});
+
+// 勤務先住所：市区町村選択時
+document.getElementById('workplace-city-select').addEventListener('change', (e) => {
+  document.getElementById('workplace-master-city-id').value = e.target.value;
+});
+
+// ミドルネームチェックボックスの動作
+document.getElementById('has-middle-name').addEventListener('change', (e) => {
+  const middleNameField = document.getElementById('middle-name-field');
+  const middleNameInput = document.getElementById('middle-name');
+
+  if (e.target.checked) {
+    middleNameField.classList.remove('hidden');
+    middleNameInput.required = true;
+  } else {
+    middleNameField.classList.add('hidden');
+    middleNameInput.required = false;
+    middleNameInput.value = '';
+  }
+});
+
 // 性別=4（自由記述）選択時にテキストフィールド表示
 document.querySelectorAll('input[name="gender"]').forEach(radio => {
   radio.addEventListener('change', (e) => {
@@ -806,6 +1055,8 @@ document.getElementById('profile-btn').addEventListener('click', async () => {
     token: signupToken,
     last_name: document.getElementById('last-name').value,
     first_name: document.getElementById('first-name').value,
+    has_middle_name: document.getElementById('has-middle-name').checked,
+    middle_name: document.getElementById('middle-name').value || null,
     last_kana_name: document.getElementById('last-kana-name').value,
     first_kana_name: document.getElementById('first-kana-name').value,
     birth_date: document.getElementById('birth-date').value,
@@ -824,9 +1075,11 @@ document.getElementById('profile-btn').addEventListener('click', async () => {
   // 就労=1の場合のみ勤務先情報を追加
   const employmentStatus = profileData.employment_status;
   if (employmentStatus === '1') {
+    const workplaceIsManual = document.getElementById('workplace-is-manual').value;
     profileData.workplace_name = document.getElementById('workplace-name').value;
     profileData.workplace_phone_number = document.getElementById('workplace-phone-number').value;
-    profileData.workplace_postal_code = document.getElementById('workplace-postal-code').value;
+    profileData.workplace_is_address_selected_manually = workplaceIsManual;
+    profileData.workplace_postal_code = workplaceIsManual === '0' ? document.getElementById('workplace-postal-code').value : null;
     profileData.workplace_prefecture_code = document.getElementById('workplace-prefecture-code').value || null;
     profileData.workplace_master_city_id = document.getElementById('workplace-master-city-id').value || null;
     profileData.workplace_address_town = document.getElementById('workplace-address-town').value || null;
@@ -844,12 +1097,22 @@ document.getElementById('profile-btn').addEventListener('click', async () => {
 
     if (response.ok) {
       // 確認画面に値を表示
-      document.getElementById('confirm-email').textContent = document.getElementById('email').value;
 
       // 名前
       const lastName = document.getElementById('last-name').value;
       const firstName = document.getElementById('first-name').value;
       document.getElementById('confirm-full-name').textContent = `${lastName} ${firstName}`;
+
+      // ミドルネーム
+      const hasMiddleName = document.getElementById('has-middle-name').checked;
+      const middleNameRow = document.getElementById('confirm-middle-name-row');
+      if (hasMiddleName) {
+        const middleName = document.getElementById('middle-name').value;
+        document.getElementById('confirm-middle-name').textContent = middleName;
+        middleNameRow.classList.remove('hidden');
+      } else {
+        middleNameRow.classList.add('hidden');
+      }
 
       // ふりがな
       const lastKanaName = document.getElementById('last-kana-name').value;
@@ -873,8 +1136,25 @@ document.getElementById('profile-btn').addEventListener('click', async () => {
       document.getElementById('confirm-phone-number').textContent = document.getElementById('phone-number').value;
 
       // 住所
-      document.getElementById('confirm-home-postal-code').textContent = document.getElementById('home-postal-code').value;
-      const homePrefCityTown = document.getElementById('home-prefecture-city-town').value || '（未入力）';
+      const homeIsManualMode = document.getElementById('home-is-manual').value === '1';
+      let homePostalCodeText = '';
+      let homePrefCityTown = '';
+
+      if (homeIsManualMode) {
+        // 手動入力モード
+        const prefectureSelect = document.getElementById('home-prefecture-select');
+        const citySelect = document.getElementById('home-city-select');
+        const prefectureName = prefectureSelect.options[prefectureSelect.selectedIndex]?.text || '';
+        const cityName = citySelect.options[citySelect.selectedIndex]?.text || '';
+        homePrefCityTown = prefectureName && cityName ? `${prefectureName} ${cityName}` : '（未入力）';
+        homePostalCodeText = '（手動入力）';
+      } else {
+        // 自動入力モード
+        homePostalCodeText = document.getElementById('home-postal-code').value;
+        homePrefCityTown = document.getElementById('home-prefecture-city-town').value || '（未入力）';
+      }
+
+      document.getElementById('confirm-home-postal-code').textContent = homePostalCodeText;
       const homeAddressLater = document.getElementById('home-address-later').value;
       document.getElementById('confirm-home-address').textContent = `${homePrefCityTown} ${homeAddressLater}`;
 
@@ -889,9 +1169,27 @@ document.getElementById('profile-btn').addEventListener('click', async () => {
         workplaceSection.classList.remove('hidden');
         document.getElementById('confirm-workplace-name').textContent = document.getElementById('workplace-name').value;
         document.getElementById('confirm-workplace-phone').textContent = document.getElementById('workplace-phone-number').value;
-        document.getElementById('confirm-workplace-postal-code').textContent = document.getElementById('workplace-postal-code').value;
 
-        const workplacePrefCityTown = document.getElementById('workplace-prefecture-city-town').value || '（未入力）';
+        // 勤務先住所
+        const workplaceIsManualMode = document.getElementById('workplace-is-manual').value === '1';
+        let workplacePostalCodeText = '';
+        let workplacePrefCityTown = '';
+
+        if (workplaceIsManualMode) {
+          // 手動入力モード
+          const prefectureSelect = document.getElementById('workplace-prefecture-select');
+          const citySelect = document.getElementById('workplace-city-select');
+          const prefectureName = prefectureSelect.options[prefectureSelect.selectedIndex]?.text || '';
+          const cityName = citySelect.options[citySelect.selectedIndex]?.text || '';
+          workplacePrefCityTown = prefectureName && cityName ? `${prefectureName} ${cityName}` : '（未入力）';
+          workplacePostalCodeText = '（手動入力）';
+        } else {
+          // 自動入力モード
+          workplacePostalCodeText = document.getElementById('workplace-postal-code').value;
+          workplacePrefCityTown = document.getElementById('workplace-prefecture-city-town').value || '（未入力）';
+        }
+
+        document.getElementById('confirm-workplace-postal-code').textContent = workplacePostalCodeText;
         const workplaceAddressLater = document.getElementById('workplace-address-later').value;
         document.getElementById('confirm-workplace-address').textContent = `${workplacePrefCityTown} ${workplaceAddressLater}`;
       } else {
@@ -906,6 +1204,11 @@ document.getElementById('profile-btn').addEventListener('click', async () => {
   } catch (error) {
     showError('通信エラーが発生しました');
   }
+});
+
+// 確認画面から入力画面に戻る
+document.getElementById('back-to-profile-btn').addEventListener('click', () => {
+  showStep('profile-step');
 });
 
 // Step 5: 登録完了

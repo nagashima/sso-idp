@@ -20,9 +20,6 @@ class Users::SignOutController < ApplicationController
 
   # ローカルログアウト処理
   def perform_local_logout
-    # 認証ログ: ログアウト
-    AuthenticationLoggerService.log_logout(current_user, request, logout_type: 'local')
-
     cookies.signed[:auth_token] = nil
     session.clear
     Rails.logger.info "IdP local logout completed at #{Time.current}"

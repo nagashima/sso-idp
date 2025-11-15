@@ -20,6 +20,15 @@ module Users
 
           # 認証コード検証
           unless user.mail_authentication_code_valid?(auth_code)
+            # 失敗ログ記録
+            AuthenticationLoggerService.log_sign_in_failure(
+              identifier: user.email,
+              request: request,
+              sign_in_type: :web,
+              failure_reason: :two_factor_failed,
+              user: user
+            )
+
             # 認証コード期限切れの場合は専用エラー
             if user.mail_authentication_code.present? && user.mail_authentication_expires_at&.past?
               return render_token_expired_error
@@ -35,12 +44,11 @@ module Users
           auth_token = generate_auth_token(user)
           set_auth_cookie(auth_token)
 
-          # 認証ログ: ログイン成功
-          AuthenticationLoggerService.log_login_success(
-            user,
-            request,
-            login_method: 'normal',
-            redirect_to: '/users/profile'
+          # 認証ログ: WEBログイン成功
+          AuthenticationLoggerService.log_sign_in_success(
+            user: user,
+            request: request,
+            sign_in_type: :web
           )
 
           # レスポンス構築
@@ -60,16 +68,16 @@ module Users
 
         # エラーハンドリング
         def render_token_error
-          error_message = @token_error || 'Invalid token'
+          error_message = @token_error || I18n.t('api.auth.invalid_token')
           render json: { error: error_message }, status: :bad_request
         end
 
         def render_token_expired_error
-          render json: { error: 'Token expired' }, status: :bad_request
+          render json: { error: I18n.t('api.auth.token_expired') }, status: :bad_request
         end
 
         def render_verification_error
-          render json: { error: 'Invalid verification code' }, status: :bad_request
+          render json: { error: I18n.t('api.auth.invalid_verification_code') }, status: :bad_request
         end
       end
     end

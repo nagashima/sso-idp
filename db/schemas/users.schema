@@ -3,7 +3,6 @@
 create_table "users", charset: "utf8mb4", collation: "utf8mb4_unicode_ci", force: :cascade do |t|
   # 基本情報
   t.string "email"
-  t.string "line_user_id"
 
   # 名前系
   t.string "last_name", null: false
@@ -49,7 +48,6 @@ create_table "users", charset: "utf8mb4", collation: "utf8mb4_unicode_ci", force
   t.string "encrypted_password"
   t.integer "mail_authentication_code"
   t.datetime "mail_authentication_expires_at"
-  t.string "mynumber_ppid"
   t.string "reset_password_token"
   t.datetime "reset_password_sent_at"
 
@@ -60,6 +58,10 @@ create_table "users", charset: "utf8mb4", collation: "utf8mb4_unicode_ci", force
   # 削除フラグ
   t.datetime "deleted_at"
 
+  # API経由作成・更新の管理
+  t.bigint "created_by"
+  t.bigint "updated_by"
+
   # タイムスタンプ
   t.datetime "created_at", null: false
   t.datetime "updated_at", null: false
@@ -69,9 +71,13 @@ create_table "users", charset: "utf8mb4", collation: "utf8mb4_unicode_ci", force
   t.index ["reset_password_token"], name: "index_users_on_reset_password_token", unique: true
   t.index ["home_master_city_id"], name: "index_users_on_home_master_city_id"
   t.index ["workplace_master_city_id"], name: "index_users_on_workplace_master_city_id"
+  t.index ["created_by"], name: "index_users_on_created_by"
+  t.index ["updated_by"], name: "index_users_on_updated_by"
 end
 
 # 外部キー
 add_foreign_key "users", "master_cities", column: "home_master_city_id"
 add_foreign_key "users", "master_cities", column: "workplace_master_city_id"
+add_foreign_key "users", "relying_parties", column: "created_by"
+add_foreign_key "users", "relying_parties", column: "updated_by"
 add_foreign_key "authentication_logs", "users"

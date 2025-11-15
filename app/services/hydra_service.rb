@@ -33,7 +33,7 @@ class HydraService
     id_token_claims = {
       sub: user.id.to_s,
       email: user.email,
-      name: user.name
+      name: user.full_name
     }
 
     response = HydraClient.accept_consent_request(challenge, scopes, id_token_claims)

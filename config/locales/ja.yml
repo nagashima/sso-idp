@@ -1,4 +1,12 @@
 ja:
+  # API関連のメッセージ
+  api:
+    auth:
+      invalid_credentials: "メールアドレスまたはパスワードが正しくありません"
+      invalid_token: "無効なトークンです"
+      token_expired: "トークンの有効期限が切れました"
+      invalid_verification_code: "認証コードが正しくありません"
+
   activerecord:
     # カラム名の日本語化
     attributes:
