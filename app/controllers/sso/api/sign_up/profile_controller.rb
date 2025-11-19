@@ -7,25 +7,26 @@ module Sso
         # POST /sso/api/sign_up/profile
         # プロフィール情報受け取り → Valkeyに保存
         def create
-          # パラメータ取得
           token = params[:token]
-          profile_params = params.permit(:name, :birth_date, :address)
-
-          validation_errors = {}
 
           # トークン検証
           if token.blank?
-            validation_errors[:token] = ['トークンが必要です']
+            return render json: {
+              errors: { token: ['トークンが必要です'] }
+            }, status: :unprocessable_content
           end
 
-          # 名前検証（Phase 1-Aでは最小限）
-          if profile_params[:name].blank?
-            validation_errors[:name] = [I18n.t('activerecord.errors.messages.blank')]
-          end
+          # SSO版は古いフォームなので、ミドルネーム関連のデフォルト値を設定
+          params[:has_middle_name] = 0 unless params[:has_middle_name].present?
+          params[:middle_name] = nil unless params[:middle_name].present?
 
-          # バリデーションエラーがある場合は業務的エラーとして返す
-          unless validation_errors.empty?
-            return render json: { errors: validation_errors }, status: :unprocessable_content
+          # Form Objectの初期化とバリデーション
+          form = Users::ProfileForm.initialize_from_params(params)
+
+          if form.invalid?
+            return render json: {
+              errors: form.errors.messages
+            }, status: :unprocessable_content
           end
 
           # トークン有効性確認
@@ -36,8 +37,8 @@ module Sso
             }, status: :unprocessable_content
           end
 
-          # プロフィールをValkeyに保存
-          CacheService.save_signup_cache(token, 'profile', profile_params.to_h)
+          # プロフィールをValkeyに保存（正規化された値）
+          CacheService.save_signup_cache(token, 'profile', form.to_user_attributes)
 
           # レスポンス返却
           render json: {

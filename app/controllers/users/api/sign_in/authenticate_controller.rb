@@ -35,57 +35,49 @@ module Users
             return render json: { errors: validation_errors }, status: :unprocessable_content
           end
 
-          # ユーザー認証
-          user = authenticate_user_for_login(email, password)
-          return render_authentication_error unless user
+          # UserSignInService委譲
+          result = UserSignInService.authenticate(email: email, password: password)
 
-          # アクティベーション確認
-          return render_activation_error unless user.activated?
+          if result.success?
+            # 一時トークン生成
+            temp_token = generate_temp_token(result.user)
 
-          # 2段階認証コード生成・保存
-          user.generate_auth_code!
+            # レスポンス構築
+            response_data = {
+              temp_token: temp_token,
+              status: 'awaiting_2fa',
+              message: I18n.t('api.auth.code_sent'),
+              flow_type: 'web',
+              expires_at: 10.minutes.from_now.iso8601
+            }
 
-          # 認証メール送信（即座に - テスト環境対応）
-          UserMailer.auth_code_email(user).deliver_now
+            # 開発環境のみ：認証コードを表示（デバッグ用）
+            if Rails.env.development?
+              response_data[:debug_auth_code] = result.user.mail_authentication_code
+            end
 
-          # 一時トークン生成
-          temp_token = generate_temp_token(user)
+            # レスポンス返却
+            render json: response_data
+          else
+            # 失敗ログ記録
+            AuthenticationLoggerService.log_sign_in_failure(
+              identifier: email,
+              request: request,
+              sign_in_type: :web,
+              failure_reason: result.error_reason,
+              user: result.user
+            )
 
-          # 認証ログ: ログイン開始（通常WEB）
-          # Note: OAuth2専用メソッドだが、通常WEBでも使用（client_idはnilでOK）
-          AuthenticationLoggerService.log_oauth2_login_start(
-            request,
-            client_id: nil,
-            login_challenge: nil
-          )
-
-          # レスポンス構築
-          response_data = {
-            temp_token: temp_token,
-            status: 'awaiting_2fa',
-            message: I18n.t('api.auth.code_sent'),
-            flow_type: 'web',
-            expires_at: 10.minutes.from_now.iso8601
-          }
-
-          # 開発環境のみ：認証コードを表示（デバッグ用）
-          if Rails.env.development?
-            response_data[:debug_auth_code] = user.auth_code
+            # エラーレスポンス
+            if result.error_reason == :user_not_activated
+              render_activation_error
+            else
+              render_authentication_error
+            end
           end
-
-          # レスポンス返却
-          render json: response_data
         end
 
         private
-
-        # 認証・バリデーション
-        def authenticate_user_for_login(email, password)
-          # ユーザー検索・認証
-          user = User.find_by(email: email)
-          return nil unless user&.authenticate(password)
-          user
-        end
 
         # エラーハンドリング
         def render_authentication_error

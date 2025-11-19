@@ -3,7 +3,7 @@
 class Master::City < ApplicationRecord
   self.table_name = 'master_cities'
 
-  belongs_to :prefecture, class_name: 'Master::Prefecture', foreign_key: :master_prefecture_id
+  belongs_to :master_prefecture, class_name: 'Master::Prefecture', foreign_key: :master_prefecture_id
 
   validates :name, presence: true
   validates :kana_name, presence: true

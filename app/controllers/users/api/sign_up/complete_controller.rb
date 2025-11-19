@@ -33,11 +33,18 @@ module Users
             auth_token = generate_auth_token(result.user)
             set_auth_cookie(auth_token)
 
+            # 認証ログ: WEB会員登録成功（自動ログイン）
+            AuthenticationLoggerService.log_sign_in_success(
+              user: result.user,
+              request: request,
+              sign_in_type: :web
+            )
+
             # レスポンス返却
             render json: {
               success: true,
               message: '会員登録が完了しました',
-              redirect_to: '/profile'
+              redirect_to: '/users/profile'
             }
           else
             render json: {

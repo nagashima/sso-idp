@@ -18,58 +18,64 @@ module Users
           user = verify_temp_token(temp_token)
           return render_token_error unless user
 
-          # 認証コード検証
-          unless user.auth_code_valid?(auth_code)
+          # UserSignInService委譲
+          result = UserSignInService.verify_and_complete(user: user, auth_code: auth_code)
+
+          if result.success?
+            # 認証トークン生成・Cookie設定
+            auth_token = generate_auth_token(result.user)
+            set_auth_cookie(auth_token)
+
+            # 認証ログ: WEBログイン成功
+            AuthenticationLoggerService.log_sign_in_success(
+              user: result.user,
+              request: request,
+              sign_in_type: :web
+            )
+
+            # レスポンス構築
+            response_data = {
+              auth_token: auth_token,
+              status: 'authenticated',
+              message: I18n.t('api.auth.login_success'),
+              flow_type: 'web',
+              redirect_to: '/users/profile'
+            }
+
+            # レスポンス返却
+            render json: response_data
+          else
+            # 失敗ログ記録
+            AuthenticationLoggerService.log_sign_in_failure(
+              identifier: user.email,
+              request: request,
+              sign_in_type: :web,
+              failure_reason: result.error_reason,
+              user: result.user
+            )
+
             # 認証コード期限切れの場合は専用エラー
-            if user.auth_code.present? && user.auth_code_expires_at&.past?
+            if user.mail_authentication_code.present? && user.mail_authentication_expires_at&.past?
               return render_token_expired_error
             end
-            return render_verification_error
+            render_verification_error
           end
-
-          # ログイン完了処理
-          user.update_last_login!
-          user.clear_auth_code!
-
-          # 認証トークン生成・Cookie設定
-          auth_token = generate_auth_token(user)
-          set_auth_cookie(auth_token)
-
-          # 認証ログ: ログイン成功
-          AuthenticationLoggerService.log_login_success(
-            user,
-            request,
-            login_method: 'normal',
-            redirect_to: '/profile'
-          )
-
-          # レスポンス構築
-          response_data = {
-            auth_token: auth_token,
-            status: 'authenticated',
-            message: I18n.t('api.auth.login_success'),
-            flow_type: 'web',
-            redirect_to: '/profile'
-          }
-
-          # レスポンス返却
-          render json: response_data
         end
 
         private
 
         # エラーハンドリング
         def render_token_error
-          error_message = @token_error || 'Invalid token'
+          error_message = @token_error || I18n.t('api.auth.invalid_token')
           render json: { error: error_message }, status: :bad_request
         end
 
         def render_token_expired_error
-          render json: { error: 'Token expired' }, status: :bad_request
+          render json: { error: I18n.t('api.auth.token_expired') }, status: :bad_request
         end
 
         def render_verification_error
-          render json: { error: 'Invalid verification code' }, status: :bad_request
+          render json: { error: I18n.t('api.auth.invalid_verification_code') }, status: :bad_request
         end
       end
     end

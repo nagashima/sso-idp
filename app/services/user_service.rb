@@ -8,18 +8,33 @@ class UserService
   #
   # @param email [String] メールアドレス
   # @param password [String] 平文パスワード
-  # @param profile [Hash] プロフィール情報（name, birth_date等）
+  # @param profile [Hash] プロフィール情報（last_name, first_name等）
   # @return [User, nil] 作成されたUserオブジェクト、失敗時はnil
   def self.create_from_signup(email:, password:, profile: {})
+    profile_data = profile.symbolize_keys
+
+    # 自宅住所から緯度経度を自動算出
+    if profile_data[:home_master_city_id].present?
+      coordinates = AddressService.coordinates(
+        profile_data[:home_master_city_id],
+        profile_data[:home_address_town] || ''
+      )
+      profile_data[:home_latitude] = coordinates[:latitude]
+      profile_data[:home_longitude] = coordinates[:longitude]
+
+      Rails.logger.info "Geocoded home address: city_id=#{profile_data[:home_master_city_id]}, " \
+                        "lat=#{coordinates[:latitude]}, lng=#{coordinates[:longitude]}"
+    end
+
     User.create!(
       email: email,
       password: password,
       password_confirmation: password,
-      **profile.symbolize_keys,
-      activated_at: Time.current  # activated?はactivated_at.present?で判定
+      **profile_data
     )
   rescue ActiveRecord::RecordInvalid => e
     Rails.logger.error "UserService.create_from_signup failed: #{e.message}"
+    Rails.logger.error e.record.errors.full_messages.join(', ') if e.record
     nil
   end
 

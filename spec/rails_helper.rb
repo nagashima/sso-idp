@@ -12,6 +12,7 @@ abort("RSpec must be run in test environment! Current: #{Rails.env}") unless Rai
 # return unless Rails.env.test?
 require 'rspec/rails'
 require 'shoulda/matchers'
+require 'webmock/rspec'
 # Add additional requires below this line. Rails is not loaded until this point!
 
 # Requires supporting ruby files with custom matchers and macros, etc, in
@@ -68,6 +69,9 @@ rescue => e
   abort e.to_s.strip
 end
 RSpec.configure do |config|
+  # WebMock設定: 外部HTTPリクエストを禁止（localhost/127.0.0.1は許可）
+  WebMock.disable_net_connect!(allow_localhost: true)
+
   # Remove this line if you're not using ActiveRecord or ActiveRecord fixtures
   config.fixture_paths = [
     Rails.root.join('spec/fixtures')

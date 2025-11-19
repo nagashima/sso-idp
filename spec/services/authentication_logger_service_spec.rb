@@ -3,60 +3,183 @@
 require 'rails_helper'
 
 RSpec.describe AuthenticationLoggerService, type: :service do
-  let(:user) { create(:user, name: 'Test User', email: 'test@example.com') }
+  let(:user) { create(:user, email: 'test@example.com') }
+  let(:relying_party) { create(:relying_party, name: 'Test RP') }
   let(:request) { double('Request', remote_ip: '192.168.1.100', user_agent: 'Mozilla/5.0', headers: {}) }
 
-  describe '.log_user_registration' do
-    it 'JSON形式でログ出力される' do
-      expect(Rails.logger).to receive(:info) do |log_message|
-        log_json = JSON.parse(log_message)
+  describe '.log_sign_in_success' do
+    context 'WEBログイン成功' do
+      it 'データベースにログが保存される' do
+        expect do
+          AuthenticationLoggerService.log_sign_in_success(
+            user: user,
+            request: request,
+            sign_in_type: :web
+          )
+        end.to change(AuthenticationLog, :count).by(1)
 
-        expect(log_json['event']).to eq('user_registration')
-        expect(log_json['user_id']).to eq(user.id)
-        expect(log_json['email']).to eq(user.email)
-        expect(log_json['login_method']).to eq('normal')
-        expect(log_json['ip_address']).to eq('192.168.1.100')
-        expect(log_json['user_agent']).to eq('Mozilla/5.0')
-        expect(log_json['timestamp']).to be_present
+        log = AuthenticationLog.last
+        expect(log.user).to eq(user)
+        expect(log.sign_in_type).to eq('web')
+        expect(log.success).to be true
+        expect(log.failure_reason).to be_nil
+        expect(log.identifier).to eq(user.email)
+        expect(log.ip_address).to eq('192.168.1.100')
+        expect(log.user_agent).to eq('Mozilla/5.0')
+        expect(log.relying_party).to be_nil
       end
 
-      AuthenticationLoggerService.log_user_registration(user, request)
+      it 'JSON形式でログ出力される' do
+        expect(Rails.logger).to receive(:info) do |log_message|
+          log_json = JSON.parse(log_message)
+
+          expect(log_json['event']).to eq('sign_in_success')
+          expect(log_json['user_id']).to eq(user.id)
+          expect(log_json['email']).to eq(user.email)
+          expect(log_json['sign_in_type']).to eq('web')
+          expect(log_json['ip_address']).to eq('192.168.1.100')
+          expect(log_json['timestamp']).to be_present
+          expect(log_json['relying_party_id']).to be_nil
+        end
+
+        AuthenticationLoggerService.log_sign_in_success(
+          user: user,
+          request: request,
+          sign_in_type: :web
+        )
+      end
     end
 
-    it 'login_methodを指定できる' do
-      expect(Rails.logger).to receive(:info) do |log_message|
-        log_json = JSON.parse(log_message)
-        expect(log_json['login_method']).to eq('sso_signup')
+    context 'SSOログイン成功' do
+      it 'RPと共にログが保存される' do
+        expect do
+          AuthenticationLoggerService.log_sign_in_success(
+            user: user,
+            request: request,
+            sign_in_type: :sso,
+            relying_party: relying_party
+          )
+        end.to change(AuthenticationLog, :count).by(1)
+
+        log = AuthenticationLog.last
+        expect(log.user).to eq(user)
+        expect(log.sign_in_type).to eq('sso')
+        expect(log.success).to be true
+        expect(log.relying_party).to eq(relying_party)
       end
 
-      AuthenticationLoggerService.log_user_registration(user, request, login_method: 'sso_signup')
+      it 'JSON形式でログ出力される' do
+        expect(Rails.logger).to receive(:info) do |log_message|
+          log_json = JSON.parse(log_message)
+
+          expect(log_json['event']).to eq('sign_in_success')
+          expect(log_json['sign_in_type']).to eq('sso')
+          expect(log_json['relying_party_id']).to eq(relying_party.id)
+        end
+
+        AuthenticationLoggerService.log_sign_in_success(
+          user: user,
+          request: request,
+          sign_in_type: :sso,
+          relying_party: relying_party
+        )
+      end
     end
   end
 
-  describe '.log_login' do
-    it 'JSON形式でログ出力される' do
-      expect(Rails.logger).to receive(:info) do |log_message|
-        log_json = JSON.parse(log_message)
+  describe '.log_sign_in_failure' do
+    context 'パスワード不一致' do
+      it 'データベースにログが保存される' do
+        expect do
+          AuthenticationLoggerService.log_sign_in_failure(
+            identifier: user.email,
+            request: request,
+            sign_in_type: :web,
+            failure_reason: :password_mismatch,
+            user: user
+          )
+        end.to change(AuthenticationLog, :count).by(1)
 
-        expect(log_json['event']).to eq('user_login')
-        expect(log_json['user_id']).to eq(user.id)
-        expect(log_json['email']).to eq(user.email)
-        expect(log_json['login_method']).to eq('normal')
-        expect(log_json['ip_address']).to eq('192.168.1.100')
-        expect(log_json['user_agent']).to eq('Mozilla/5.0')
-        expect(log_json['timestamp']).to be_present
+        log = AuthenticationLog.last
+        expect(log.user).to eq(user)
+        expect(log.sign_in_type).to eq('web')
+        expect(log.success).to be false
+        expect(log.failure_reason).to eq('password_mismatch')
+        expect(log.identifier).to eq(user.email)
       end
 
-      AuthenticationLoggerService.log_login(user, request)
+      it 'JSON形式で警告ログが出力される' do
+        expect(Rails.logger).to receive(:warn) do |log_message|
+          log_json = JSON.parse(log_message)
+
+          expect(log_json['event']).to eq('sign_in_failure')
+          expect(log_json['user_id']).to eq(user.id)
+          expect(log_json['identifier']).to eq(user.email)
+          expect(log_json['sign_in_type']).to eq('web')
+          expect(log_json['failure_reason']).to eq('password_mismatch')
+          expect(log_json['timestamp']).to be_present
+        end
+
+        AuthenticationLoggerService.log_sign_in_failure(
+          identifier: user.email,
+          request: request,
+          sign_in_type: :web,
+          failure_reason: :password_mismatch,
+          user: user
+        )
+      end
     end
 
-    it 'login_methodを指定できる' do
-      expect(Rails.logger).to receive(:info) do |log_message|
-        log_json = JSON.parse(log_message)
-        expect(log_json['login_method']).to eq('sso')
-      end
+    context 'ユーザーが見つからない' do
+      it 'ユーザーなしでログが保存される' do
+        expect do
+          AuthenticationLoggerService.log_sign_in_failure(
+            identifier: 'unknown@example.com',
+            request: request,
+            sign_in_type: :web,
+            failure_reason: :user_not_found
+          )
+        end.to change(AuthenticationLog, :count).by(1)
 
-      AuthenticationLoggerService.log_login(user, request, login_method: 'sso')
+        log = AuthenticationLog.last
+        expect(log.user).to be_nil
+        expect(log.failure_reason).to eq('user_not_found')
+        expect(log.identifier).to eq('unknown@example.com')
+      end
+    end
+
+    context '2FA失敗' do
+      it 'データベースにログが保存される' do
+        expect do
+          AuthenticationLoggerService.log_sign_in_failure(
+            identifier: user.email,
+            request: request,
+            sign_in_type: :sso,
+            failure_reason: :two_factor_failed,
+            user: user
+          )
+        end.to change(AuthenticationLog, :count).by(1)
+
+        log = AuthenticationLog.last
+        expect(log.failure_reason).to eq('two_factor_failed')
+        expect(log.sign_in_type).to eq('sso')
+      end
+    end
+
+    context '環境変数での制御' do
+      it 'LOG_FAILED_SIGN_IN=falseの場合、ログが保存されない' do
+        allow(ENV).to receive(:fetch).with('LOG_FAILED_SIGN_IN', 'true').and_return('false')
+
+        expect do
+          AuthenticationLoggerService.log_sign_in_failure(
+            identifier: user.email,
+            request: request,
+            sign_in_type: :web,
+            failure_reason: :password_mismatch,
+            user: user
+          )
+        end.not_to change(AuthenticationLog, :count)
+      end
     end
   end
 
@@ -75,7 +198,11 @@ RSpec.describe AuthenticationLoggerService, type: :service do
           expect(log_json['ip_address']).to eq('203.0.113.1')
         end
 
-        AuthenticationLoggerService.log_user_registration(user, request)
+        AuthenticationLoggerService.log_sign_in_success(
+          user: user,
+          request: request,
+          sign_in_type: :web
+        )
       end
     end
 
@@ -93,7 +220,11 @@ RSpec.describe AuthenticationLoggerService, type: :service do
           expect(log_json['ip_address']).to eq('203.0.113.2')
         end
 
-        AuthenticationLoggerService.log_user_registration(user, request)
+        AuthenticationLoggerService.log_sign_in_success(
+          user: user,
+          request: request,
+          sign_in_type: :web
+        )
       end
     end
 
@@ -104,7 +235,11 @@ RSpec.describe AuthenticationLoggerService, type: :service do
           expect(log_json['ip_address']).to eq('192.168.1.100')
         end
 
-        AuthenticationLoggerService.log_user_registration(user, request)
+        AuthenticationLoggerService.log_sign_in_success(
+          user: user,
+          request: request,
+          sign_in_type: :web
+        )
       end
     end
   end

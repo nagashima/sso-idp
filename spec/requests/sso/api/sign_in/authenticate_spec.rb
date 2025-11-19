@@ -3,13 +3,9 @@
 require 'rails_helper'
 
 RSpec.describe "POST /sso/api/sign_in/authenticate", type: :request do
-  let(:user) { create(:user, email: 'test@example.com', password: 'password123', password_confirmation: 'password123') }
+  let!(:user) { create(:user, email: 'test@example.com', password: 'password123', password_confirmation: 'password123') }
 
   describe "正常系" do
-    before do
-      user.activate!
-    end
-
     context "login_challengeなし（通常WEB）" do
       it "temp_tokenが返される" do
         post '/sso/api/sign_in/authenticate', params: {

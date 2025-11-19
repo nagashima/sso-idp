@@ -8,7 +8,13 @@ RSpec.describe "POST /users/api/sign_up/complete", type: :request do
   before do
     # パスワードとプロフィールをキャッシュに保存
     CacheService.save_signup_cache(signup_ticket.token, 'password', 'password123')
-    CacheService.save_signup_cache(signup_ticket.token, 'profile', { 'name' => '山田太郎' })
+    CacheService.save_signup_cache(signup_ticket.token, 'profile', {
+      'last_name' => '山田',
+      'first_name' => '太郎',
+      'last_kana_name' => 'ヤマダ',
+      'first_kana_name' => 'タロウ',
+      'employment_status' => 1
+    })
   end
 
   describe "正常系" do
@@ -22,7 +28,7 @@ RSpec.describe "POST /users/api/sign_up/complete", type: :request do
       json = JSON.parse(response.body)
       expect(json['success']).to be true
       expect(json['message']).to include('会員登録が完了しました')
-      expect(json['redirect_to']).to eq('/profile')
+      expect(json['redirect_to']).to eq('/users/profile')
 
       # Userが作成されているか確認
       expect(User.find_by(email: 'newuser@example.com')).to be_present

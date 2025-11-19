@@ -57,42 +57,24 @@ module Sso
           if flow_type == 'oauth2'
             # OAuth2の場合はHydraリダイレクトURL生成
             begin
-              # ★初回RPログイン記録（新規登録なので必ず初回）★
-              login_request = HydraClient.get_login_request(login_challenge)
-              client_id = login_request.dig('client', 'client_id')
-              relying_party = RelyingParty.find_by(api_key: client_id)
-              if relying_party
-                result.user.relying_parties << relying_party
-                Rails.logger.info "First RP registration: user_id=#{result.user.id}, rp=#{relying_party.name} (#{relying_party.domain})"
-              end
-
               hydra_redirect = HydraService.accept_login_request(login_challenge, result.user.id)
               response_data[:hydra_redirect] = hydra_redirect
 
               Rails.logger.info "SSO SignUp Complete - hydra_redirect: #{hydra_redirect}"
 
-              # 認証ログ: SSO会員登録成功
-              AuthenticationLoggerService.log_user_registration(
-                result.user,
-                request,
-                login_method: 'sso_signup'
-              )
+              # 認証ログはConsent処理時に記録される
             rescue HydraError => e
               Rails.logger.warn "Hydra challenge expired during signup: #{e.message}"
               # Hydra challengeが期限切れの場合は通常フローへ
-              response_data[:redirect_to] = '/profile'
+              response_data[:redirect_to] = '/users/profile'
               response_data[:notice] = '登録完了しました。RP側から再度ログインしてください。'
             end
           else
-            # 通常の場合はprofileページ
-            response_data[:redirect_to] = '/profile'
+            # 通常の場合はprofileページ（login_challengeなし）
+            response_data[:redirect_to] = '/users/profile'
 
-            # 認証ログ: 通常会員登録成功
-            AuthenticationLoggerService.log_user_registration(
-              result.user,
-              request,
-              login_method: 'normal_signup'
-            )
+            # 認証ログはConsentがないため、ここでは記録しない
+            # （SSO経由でない直接登録はUsers版を使用）
           end
 
           # レスポンス返却

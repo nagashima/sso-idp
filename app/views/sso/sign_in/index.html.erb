@@ -1,7 +1,7 @@
 <div class="container mx-auto px-4 py-8">
   <div class="max-w-md mx-auto bg-white rounded-lg shadow-md p-6">
     <h1 class="text-2xl font-bold text-center text-gray-800 mb-6">
-      SSOログイン（新API版）
+      SSOログイン
     </h1>
 
     <div id="login-form">
@@ -51,6 +51,11 @@
             </p>
           </div>
 
+          <!-- エラーメッセージ表示 -->
+          <div id="verify-error-message" class="hidden bg-red-50 border border-red-200 rounded-lg p-4">
+            <p id="verify-error-text" class="text-red-800"></p>
+          </div>
+
           <div class="space-y-2">
             <label class="block text-sm font-medium text-gray-700">認証コード（6桁）</label>
             <input type="text" id="auth-code"
@@ -94,7 +99,7 @@
 let tempToken = null;
 const loginChallenge = '<%= j @login_challenge %>'; // ERBからlogin_challengeを取得
 
-// エラー表示
+// エラー表示（Step 1用）
 function showError(message) {
   const errorDiv = document.getElementById('error-message');
   const errorText = document.getElementById('error-text');
@@ -104,6 +109,18 @@ function showError(message) {
 
 function hideError() {
   document.getElementById('error-message').classList.add('hidden');
+}
+
+// エラー表示（Step 2用）
+function showVerifyError(message) {
+  const errorDiv = document.getElementById('verify-error-message');
+  const errorText = document.getElementById('verify-error-text');
+  errorText.textContent = message;
+  errorDiv.classList.remove('hidden');
+}
+
+function hideVerifyError() {
+  document.getElementById('verify-error-message').classList.add('hidden');
 }
 
 // Step 1: 認証（SSO版）
@@ -152,7 +169,7 @@ document.getElementById('authenticate-btn').addEventListener('click', async () =
 
 // Step 2: 検証（SSO版）
 document.getElementById('verify-btn').addEventListener('click', async () => {
-  hideError();
+  hideVerifyError();
 
   const authCode = document.getElementById('auth-code').value;
 
@@ -182,10 +199,10 @@ document.getElementById('verify-btn').addEventListener('click', async () => {
       }
     } else {
       // エラー
-      showError(data.error || '認証コードが正しくありません');
+      showVerifyError(data.error || '認証コードが正しくありません');
     }
   } catch (error) {
-    showError('通信エラーが発生しました');
+    showVerifyError('通信エラーが発生しました');
   }
 });
 
@@ -196,5 +213,6 @@ document.getElementById('back-btn').addEventListener('click', () => {
   document.getElementById('auth-code').value = '';
   document.getElementById('debug-auth-code').classList.add('hidden');
   hideError();
+  hideVerifyError();
 });
 </script>

@@ -49,13 +49,15 @@ class Sso::ConsentController < ApplicationController
       # ユーザー情報をクレームとして準備
       user_claims = build_user_claims(current_user, granted_scopes)
 
-      # 認証ログ: OAuth2手動同意
-      AuthenticationLoggerService.log_oauth2_consent(
-        current_user,
-        request,
-        client_id: consent_request.dig('client', 'client_id'),
-        scopes: granted_scopes,
-        consent_challenge: consent_challenge
+      # ユーザーとRPの関連を保存（activate）
+      rp = record_user_rp_relationship(consent_request, activate: true)
+
+      # 認証ログ: SSOログイン成功
+      AuthenticationLoggerService.log_sign_in_success(
+        user: current_user,
+        request: request,
+        sign_in_type: :sso,
+        relying_party: rp
       )
 
       # 同意チャレンジを受け入れ
@@ -109,13 +111,15 @@ class Sso::ConsentController < ApplicationController
     granted_scopes = consent_request['requested_scope'] || []
     user_claims = build_user_claims(current_user, granted_scopes)
 
-    # 認証ログ: OAuth2自動同意
-    AuthenticationLoggerService.log_oauth2_consent(
-      current_user,
-      request,
-      client_id: consent_request.dig('client', 'client_id'),
-      scopes: granted_scopes,
-      consent_challenge: consent_challenge
+    # ユーザーとRPの関連を保存（activate）
+    rp = record_user_rp_relationship(consent_request, activate: true)
+
+    # 認証ログ: SSOログイン成功
+    AuthenticationLoggerService.log_sign_in_success(
+      user: current_user,
+      request: request,
+      sign_in_type: :sso,
+      relying_party: rp
     )
 
     response = HydraClient.accept_consent_request(
@@ -135,7 +139,7 @@ class Sso::ConsentController < ApplicationController
 
     # profileスコープが含まれている場合
     if granted_scopes.include?('profile')
-      claims[:name] = user.name
+      claims[:name] = user.full_name
       claims[:birthdate] = user.birth_date&.strftime('%Y-%m-%d')
     end
 
@@ -146,9 +150,18 @@ class Sso::ConsentController < ApplicationController
     end
 
     # addressスコープが含まれている場合（カスタムスコープ）
-    if granted_scopes.include?('address') && user.address.present?
+    if granted_scopes.include?('address') && user.home_master_city_id.present?
+      # 住所を連結（自宅住所のみ）
+      full_address = [
+        user.home_master_city&.master_prefecture&.name,
+        user.home_master_city&.county_name,
+        user.home_master_city&.name,
+        user.home_address_town,
+        user.home_address_later
+      ].compact.join('')
+
       claims[:address] = {
-        formatted: user.address
+        formatted: full_address
       }
     end
 
@@ -158,5 +171,34 @@ class Sso::ConsentController < ApplicationController
     end
 
     claims
+  end
+
+  # ユーザーとRPの関連を記録
+  #
+  # @param consent_request [Hash] Hydraから取得した同意要求情報
+  # @param activate [Boolean] activated_atを設定するか
+  # @return [RelyingParty, nil] RPオブジェクト
+  def record_user_rp_relationship(consent_request, activate: false)
+    client_id = consent_request.dig('client', 'client_id')
+    return nil if client_id.blank?
+
+    # client_idからRelyingPartyを検索（api_keyがclient_idとして使われている）
+    rp = RelyingParty.find_by(api_key: client_id)
+    return nil unless rp
+
+    # UserRelyingPartyServiceでレコード作成（SSO経由はmetadata空で作成）
+    UserRelyingPartyService.find_or_create(
+      user: current_user,
+      relying_party: rp,
+      metadata: {},
+      activate: activate
+    )
+
+    rp
+  rescue StandardError => e
+    # エラーログを出力するが、SSOログイン自体は継続
+    Rails.logger.error "Failed to record user-RP relationship: #{e.message}"
+    Rails.logger.error e.backtrace.join("\n")
+    nil
   end
 end

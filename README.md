@@ -249,52 +249,115 @@ docker-compose exec valkey valkey-cli -a valkey_password FLUSHALL
 
 ## 🧪 テスト
 
+### テスト環境のセットアップ
+
+初回またはスキーマ変更後は、テスト環境を手動でセットアップする必要があります。
+
+```bash
+# テストDB作成 + スキーマ適用 + マスターデータ投入
+docker-compose exec app bash -c "RAILS_ENV=test bundle exec rake test:setup"
+```
+
+このタスクは以下を自動実行します：
+- testDBの削除・再作成（`idp_test`）
+- Ridgepoleによるスキーマ適用
+- seed_fuによるマスターデータ投入
+  - 都道府県: 47件
+  - 市区町村: 1,918件
+
 ### RSpecテスト実行
 
-#### テスト環境の自動セットアップ
+#### 基本的な実行方法
 
-`docker-compose up -d`実行時に、以下が自動的にセットアップされます：
-- test環境のデータベース作成（`idp_test`）
-- スキーマ適用（7テーブル）
-- マスターデータ投入（都道府県47件、市区町村1,918件）
-
-#### 推奨実行方法（メモリ不足回避）
-
-**重要**: `docker-compose exec`ではなく`docker-compose run`を使用してください。
-foremanプロセスと同時実行するとメモリ不足でコンテナが落ちる場合があります。
+appコンテナ内でテストを実行します（foremanと同居するためメモリ効率的）。
 
 ```bash
-# Unit test（models/services）- 高速、推奨
-docker-compose run --rm -e RAILS_ENV=test app bundle exec rspec spec/models spec/services
-
-# Request test（統合テスト）
-docker-compose run --rm -e RAILS_ENV=test app bundle exec rspec spec/requests
-
-# System test（E2Eテスト）
-docker-compose run --rm -e RAILS_ENV=test app bundle exec rspec spec/system
-
 # 全テスト実行
-docker-compose run --rm -e RAILS_ENV=test app bundle exec rspec
+docker-compose exec app bash -c "RAILS_ENV=test bundle exec rspec"
+
+# 特定のディレクトリのみ
+docker-compose exec app bash -c "RAILS_ENV=test bundle exec rspec spec/models"
+docker-compose exec app bash -c "RAILS_ENV=test bundle exec rspec spec/requests"
+docker-compose exec app bash -c "RAILS_ENV=test bundle exec rspec spec/forms"
 
 # 特定のファイルのみ
-docker-compose run --rm -e RAILS_ENV=test app bundle exec rspec spec/models/user_spec.rb
+docker-compose exec app bash -c "RAILS_ENV=test bundle exec rspec spec/models/user_spec.rb"
+
+# 特定のテストケースのみ（行番号指定）
+docker-compose exec app bash -c "RAILS_ENV=test bundle exec rspec spec/requests/api/v1/users_spec.rb:39"
 ```
 
-#### テスト実行の仕組み
-
-- `docker-compose run`: 新しい一時的なコンテナを起動（RSpec実行専用）
-- `--rm`: テスト終了後に自動削除
-- `-e RAILS_ENV=test`: test環境を指定
-- 既存のappコンテナ（foreman起動中）には影響なし
-
-#### testDBのリセット
+#### ドキュメント形式で実行（詳細表示）
 
 ```bash
-# testDBを削除してコンテナ再起動（自動再セットアップ）
-docker-compose down
-docker-compose exec db mysql -u rails -prails_password -e "DROP DATABASE IF EXISTS idp_test;"
-docker-compose up -d
+# 詳細な出力で実行
+docker-compose exec app bash -c "RAILS_ENV=test bundle exec rspec --format documentation"
+
+# APIテストを詳細表示
+docker-compose exec app bash -c "RAILS_ENV=test bundle exec rspec spec/requests/api/v1/users_spec.rb --format documentation"
 ```
+
+#### テストカテゴリ別
+
+```bash
+# モデルのテスト（高速）
+docker-compose exec app bash -c "RAILS_ENV=test bundle exec rspec spec/models spec/services"
+
+# APIのテスト（統合テスト）
+docker-compose exec app bash -c "RAILS_ENV=test bundle exec rspec spec/requests/api"
+
+# Form Objectsのテスト
+docker-compose exec app bash -c "RAILS_ENV=test bundle exec rspec spec/forms"
+
+# System test（E2Eテスト、時間かかる）
+docker-compose exec app bash -c "RAILS_ENV=test bundle exec rspec spec/system"
+```
+
+### testDBのリセット
+
+スキーマ変更やデータ不整合が発生した場合：
+
+```bash
+# 方法1: test:setupタスクで完全リセット（推奨）
+docker-compose exec app bash -c "RAILS_ENV=test bundle exec rake test:setup"
+
+# 方法2: 手動でDB削除してセットアップ
+docker-compose exec db mysql -u rails -prails_password -e "DROP DATABASE IF EXISTS idp_test;"
+docker-compose exec app bash -c "RAILS_ENV=test bundle exec rake test:setup"
+```
+
+### テスト実行のTips
+
+```bash
+# 失敗したテストのみ再実行
+docker-compose exec app bash -c "RAILS_ENV=test bundle exec rspec --only-failures"
+
+# ランダム順で実行（順序依存の問題を発見）
+docker-compose exec app bash -c "RAILS_ENV=test bundle exec rspec --order random"
+
+# 詳細なバックトレース表示
+docker-compose exec app bash -c "RAILS_ENV=test bundle exec rspec --backtrace"
+```
+
+### よくあるテストエラーと対処法
+
+#### 外部キー制約エラー
+```
+Mysql2::Error: Cannot add or update a child row: a foreign key constraint fails
+```
+→ マスターデータ（市区町村）が不足している可能性があります。`rake test:setup`を実行してください。
+
+#### データベース接続エラー
+```
+There is an issue connecting with your hostname: db
+```
+→ Dockerコンテナが起動していることを確認してください。`docker-compose up -d`
+
+#### テストDBが存在しない
+```
+Unknown database 'idp_test'
+```
+→ `rake test:setup`でテストDBをセットアップしてください。
 
 ---
 
