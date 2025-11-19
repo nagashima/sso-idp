@@ -12,7 +12,8 @@ serve:
 
 # dev: true を削除してセッション固定化
 
-dsn: mysql://rails:rails_password@db:3306/hydra_development?parseTime=true
+# DSNは環境変数 DSN で設定します（docker-compose.yml経由）
+# dsn: mysql://rails:rails_password@db:3306/hydra_development?parseTime=true
 
 # 以下のURL設定はdocker-compose.ymlの環境変数（URLS_*）で上書きされます
 # docker-compose.ymlで HYDRA_PUBLIC_URL から動的に生成される設定が優先されます
@@ -24,9 +25,10 @@ urls:
   logout: https://localhost:4443/sso/logout
   post_logout_redirect: https://localhost:4443/
 
-secrets:
-  system:
-    - hydra-fixed-development-secret-for-session-persistence-do-not-use-in-production
+# System Secretsは環境変数 SECRETS_SYSTEM で設定します（docker-compose.yml経由）
+# secrets:
+#   system:
+#     - hydra-fixed-development-secret-for-session-persistence-do-not-use-in-production
 
 oidc:
   subject_identifiers:

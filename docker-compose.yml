@@ -106,6 +106,7 @@ services:
     image: oryd/hydra:v2.3.0
     environment:
       - DSN=${HYDRA_DSN}
+      - SECRETS_SYSTEM=${HYDRA_SECRETS_SYSTEM}
     command: migrate sql -c /etc/config/hydra.yml -e --yes
     volumes:
       - ./docker/hydra:/etc/config
@@ -119,6 +120,7 @@ services:
     image: oryd/hydra:v2.3.0
     environment:
       - DSN=${HYDRA_DSN}
+      - SECRETS_SYSTEM=${HYDRA_SECRETS_SYSTEM}
       - URLS_SELF_ISSUER=${HYDRA_PUBLIC_URL}
       - URLS_LOGIN=${HYDRA_PUBLIC_URL}/sso/sign_in
       - URLS_CONSENT=${HYDRA_PUBLIC_URL}/sso/consent
