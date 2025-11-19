@@ -62,12 +62,7 @@ module Sso
 
               Rails.logger.info "SSO SignUp Complete - hydra_redirect: #{hydra_redirect}"
 
-              # 認証ログ: SSO会員登録成功
-              AuthenticationLoggerService.log_user_registration(
-                result.user,
-                request,
-                login_method: 'sso_signup'
-              )
+              # 認証ログはConsent処理時に記録される
             rescue HydraError => e
               Rails.logger.warn "Hydra challenge expired during signup: #{e.message}"
               # Hydra challengeが期限切れの場合は通常フローへ
@@ -75,15 +70,11 @@ module Sso
               response_data[:notice] = '登録完了しました。RP側から再度ログインしてください。'
             end
           else
-            # 通常の場合はprofileページ
+            # 通常の場合はprofileページ（login_challengeなし）
             response_data[:redirect_to] = '/users/profile'
 
-            # 認証ログ: 通常会員登録成功
-            AuthenticationLoggerService.log_user_registration(
-              result.user,
-              request,
-              login_method: 'normal_signup'
-            )
+            # 認証ログはConsentがないため、ここでは記録しない
+            # （SSO経由でない直接登録はUsers版を使用）
           end
 
           # レスポンス返却

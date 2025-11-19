@@ -51,6 +51,11 @@ module Api
         attrs[:password_confirmation] = password_confirmation if password_confirmation.present?
         attrs
       end
+
+      # API経由ではパスワード任意（WEB版は必須）
+      def require_password?
+        false
+      end
     end
   end
 end

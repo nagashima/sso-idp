@@ -4,7 +4,9 @@ create_table "user_relying_parties", charset: "utf8mb4", collation: "utf8mb4_uni
   t.bigint "user_id", null: false
   t.bigint "relying_party_id", null: false
   t.json "metadata", null: false
+  t.datetime "activated_at", precision: 6, null: true
   t.timestamps null: false
   t.index ["user_id", "relying_party_id"], name: "index_user_relying_parties_on_user_and_rp", unique: true
   t.index ["relying_party_id", "user_id"], name: "index_user_relying_parties_on_rp_and_user"
+  t.index ["user_id", "relying_party_id", "activated_at"], name: "index_user_rps_on_user_rp_activated"
 end

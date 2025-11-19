@@ -90,7 +90,7 @@ Rails.application.routes.draw do
       get 'user_info', to: 'user_info#show'
 
       # ユーザー情報管理API
-      resources :users, only: [:index, :show]
+      resources :users, only: [:index, :show, :create, :update]
     end
   end
 end

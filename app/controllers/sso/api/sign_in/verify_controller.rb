@@ -19,60 +19,65 @@ module Sso
           user = verify_temp_token(temp_token)
           return render_token_error unless user
 
-          # 認証コード検証
-          unless user.mail_authentication_code_valid?(auth_code)
+          # UserSignInService委譲
+          result = UserSignInService.verify_and_complete(user: user, auth_code: auth_code)
+
+          if result.success?
+            # 認証トークン生成・Cookie設定
+            auth_token = generate_auth_token(result.user)
+            set_auth_cookie(auth_token)
+
+            # 認証ログ: SSOログイン成功
+            AuthenticationLoggerService.log_sign_in_success(
+              user: result.user,
+              request: request,
+              sign_in_type: :sso
+            )
+
+            # OAuth2フロー判定
+            flow_type = login_challenge.present? ? 'oauth2' : 'web'
+
+            # レスポンス構築
+            response_data = {
+              auth_token: auth_token,
+              status: 'authenticated',
+              message: I18n.t('api.auth.login_success'),
+              flow_type: flow_type
+            }
+
+            # フロー別リダイレクト先設定
+            if flow_type == 'oauth2'
+              # OAuth2の場合はHydraリダイレクトURL生成
+              begin
+                hydra_redirect = HydraService.accept_login_request(login_challenge, result.user.id)
+                response_data[:hydra_redirect] = hydra_redirect
+              rescue HydraError => e
+                Rails.logger.error "Hydra login accept error: #{e.message}"
+                return render json: { error: 'OAuth2 processing failed' }, status: :internal_server_error
+              end
+            else
+              # 通常の場合はprofileページ
+              response_data[:redirect_to] = '/users/profile'
+            end
+
+            # レスポンス返却
+            render json: response_data
+          else
             # 失敗ログ記録
             AuthenticationLoggerService.log_sign_in_failure(
               identifier: user.email,
               request: request,
               sign_in_type: :sso,
-              failure_reason: :two_factor_failed,
-              user: user
+              failure_reason: result.error_reason,
+              user: result.user
             )
 
             # 認証コード期限切れの場合は専用エラー
             if user.mail_authentication_code.present? && user.mail_authentication_expires_at&.past?
               return render_token_expired_error
             end
-            return render_verification_error
+            render_verification_error
           end
-
-          # ログイン完了処理
-          user.update_last_sign_in!
-          user.clear_mail_authentication_code!
-
-          # 認証トークン生成・Cookie設定
-          auth_token = generate_auth_token(user)
-          set_auth_cookie(auth_token)
-
-          # OAuth2フロー判定
-          flow_type = login_challenge.present? ? 'oauth2' : 'web'
-
-          # レスポンス構築
-          response_data = {
-            auth_token: auth_token,
-            status: 'authenticated',
-            message: I18n.t('api.auth.login_success'),
-            flow_type: flow_type
-          }
-
-          # フロー別リダイレクト先設定
-          if flow_type == 'oauth2'
-            # OAuth2の場合はHydraリダイレクトURL生成
-            begin
-              hydra_redirect = HydraService.accept_login_request(login_challenge, user.id)
-              response_data[:hydra_redirect] = hydra_redirect
-            rescue HydraError => e
-              Rails.logger.error "Hydra login accept error: #{e.message}"
-              return render json: { error: 'OAuth2 processing failed' }, status: :internal_server_error
-            end
-          else
-            # 通常の場合はprofileページ
-            response_data[:redirect_to] = '/users/profile'
-          end
-
-          # レスポンス返却
-          render json: response_data
         end
 
         private

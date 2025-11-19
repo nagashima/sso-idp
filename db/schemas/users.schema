@@ -67,7 +67,7 @@ create_table "users", charset: "utf8mb4", collation: "utf8mb4_unicode_ci", force
   t.datetime "updated_at", null: false
 
   # インデックス
-  t.index ["email"], name: "index_users_on_email", unique: true
+  t.index ["email"], name: "index_users_on_email"
   t.index ["reset_password_token"], name: "index_users_on_reset_password_token", unique: true
   t.index ["home_master_city_id"], name: "index_users_on_home_master_city_id"
   t.index ["workplace_master_city_id"], name: "index_users_on_workplace_master_city_id"

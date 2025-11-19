@@ -49,8 +49,8 @@ class Sso::ConsentController < ApplicationController
       # ユーザー情報をクレームとして準備
       user_claims = build_user_claims(current_user, granted_scopes)
 
-      # ユーザーとRPの関連を保存
-      rp = record_user_rp_relationship(consent_request)
+      # ユーザーとRPの関連を保存（activate）
+      rp = record_user_rp_relationship(consent_request, activate: true)
 
       # 認証ログ: SSOログイン成功
       AuthenticationLoggerService.log_sign_in_success(
@@ -111,8 +111,8 @@ class Sso::ConsentController < ApplicationController
     granted_scopes = consent_request['requested_scope'] || []
     user_claims = build_user_claims(current_user, granted_scopes)
 
-    # ユーザーとRPの関連を保存
-    rp = record_user_rp_relationship(consent_request)
+    # ユーザーとRPの関連を保存（activate）
+    rp = record_user_rp_relationship(consent_request, activate: true)
 
     # 認証ログ: SSOログイン成功
     AuthenticationLoggerService.log_sign_in_success(
@@ -176,8 +176,9 @@ class Sso::ConsentController < ApplicationController
   # ユーザーとRPの関連を記録
   #
   # @param consent_request [Hash] Hydraから取得した同意要求情報
+  # @param activate [Boolean] activated_atを設定するか
   # @return [RelyingParty, nil] RPオブジェクト
-  def record_user_rp_relationship(consent_request)
+  def record_user_rp_relationship(consent_request, activate: false)
     client_id = consent_request.dig('client', 'client_id')
     return nil if client_id.blank?
 
@@ -189,7 +190,8 @@ class Sso::ConsentController < ApplicationController
     UserRelyingPartyService.find_or_create(
       user: current_user,
       relying_party: rp,
-      metadata: {}
+      metadata: {},
+      activate: activate
     )
 
     rp

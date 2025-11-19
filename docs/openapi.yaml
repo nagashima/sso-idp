@@ -183,14 +183,14 @@ paths:
           required: false
           schema:
             type: string
-          example: "山田"
+          example: "佐藤"
         - name: kana_name
           in: query
           description: 氏名（かな）部分一致検索
           required: false
           schema:
             type: string
-          example: "やまだ"
+          example: "さとう"
         - name: phone_number
           in: query
           description: 電話番号（完全一致、ハイフンあり・なし両方対応）
@@ -217,6 +217,26 @@ paths:
             default: 0
             minimum: 0
           example: 0
+        - name: registered_only
+          in: query
+          description: |
+            自RPに登録されているユーザーのみを検索対象とします（推奨）。
+            未指定の場合、全ユーザーが検索対象となります。
+          required: false
+          schema:
+            type: string
+            enum: ['true', 'false']
+          example: "true"
+        - name: activated_only
+          in: query
+          description: |
+            自RPに登録済みかつSSOログイン済み（activated_at が設定済み）のユーザーのみを検索対象とします。
+            このパラメータを指定した場合、registered_only は暗黙的に true として扱われます。
+          required: false
+          schema:
+            type: string
+            enum: ['true', 'false']
+          example: "true"
       responses:
         '200':
           description: 成功（常に配列形式）
@@ -308,7 +328,7 @@ paths:
         **ID指定なし（新規作成）:**
         - 常に新規作成（INSERT）
         - 成功 → 201 Created
-        - email/phone重複 → 409 Conflict（明示的エラー）
+        - email重複 → 409 Conflict（明示的エラー）
         - created_by にリクエスト元RPのIDを設定
 
         **user_relying_parties:**
@@ -330,10 +350,10 @@ paths:
                   email: newuser@example.com
                   password: password123
                   password_confirmation: password123
-                  last_name: 山田
-                  first_name: 太郎
-                  last_kana_name: やまだ
-                  first_kana_name: たろう
+                  last_name: 佐藤
+                  first_name: 桜子
+                  last_kana_name: さとう
+                  first_kana_name: さくらこ
                   has_middle_name: 0
                   birth_date: "1990-01-01"
                   gender_code: 1
@@ -355,10 +375,10 @@ paths:
                 value:
                   id: 123
                   email: user@example.com
-                  last_name: 山田
-                  first_name: 花子
-                  last_kana_name: やまだ
-                  first_kana_name: はなこ
+                  last_name: 佐藤
+                  first_name: 桜子
+                  last_kana_name: さとう
+                  first_kana_name: さくらこ
                   has_middle_name: 0
                   birth_date: "1985-05-15"
                   gender_code: 2
@@ -400,7 +420,7 @@ paths:
                     error: User not found
                     message: 指定されたIDのユーザーは存在しません
         '409':
-          description: email/phone重複（ID未指定時）
+          description: email重複（ID未指定時）
           content:
             application/json:
               schema:
@@ -411,11 +431,6 @@ paths:
                   value:
                     error: Email already exists
                     message: このメールアドレスは既に登録されています
-                phoneConflict:
-                  summary: 電話番号重複
-                  value:
-                    error: Phone number already exists
-                    message: この電話番号は既に登録されています
         '422':
           $ref: '#/components/responses/ValidationError'
 
@@ -520,7 +535,7 @@ components:
           format: int64
           nullable: true
           description: 自宅市区町村マスタID
-          example: 1001
+          example: 131059
         home_address_town:
           type: string
           nullable: true
@@ -593,7 +608,7 @@ components:
           format: int64
           nullable: true
           description: 勤務先市区町村マスタID
-          example: 1002
+          example: 131059
         workplace_address_town:
           type: string
           nullable: true
@@ -665,19 +680,19 @@ components:
         last_name:
           type: string
           description: 姓
-          example: 山田
+          example: 佐藤
         first_name:
           type: string
           description: 名
-          example: 太郎
+          example: 桜子
         last_kana_name:
           type: string
           description: 姓（かな、ひらがな）
-          example: やまだ
+          example: さとう
         first_kana_name:
           type: string
           description: 名（かな、ひらがな）
-          example: たろう
+          example: さくらこ
         has_middle_name:
           type: integer
           description: ミドルネーム有無（0=なし, 1=あり）
@@ -794,10 +809,10 @@ components:
         # プロフィール情報（任意）
         last_name:
           type: string
-          example: 山田
+          example: 佐藤
         first_name:
           type: string
-          example: 花子
+          example: 桜子
         phone_number:
           type: string
           example: "09087654321"

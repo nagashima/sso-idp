@@ -11,18 +11,27 @@ module ValidatableUserPassword
     # パスワード
     validates :password,
               presence: { message: 'パスワードを入力してください' },
-              length: { minimum: 8, maximum: 128, message: 'パスワードは8文字以上で入力してください' }
+              length: { minimum: 8, maximum: 128, message: 'パスワードは8文字以上で入力してください' },
+              if: :require_password?
 
     # スペースのみのパスワードを禁止
-    validate :password_not_only_spaces
+    validate :password_not_only_spaces, if: :require_password?
 
     # パスワード（確認）
     validates :password_confirmation,
-              presence: { message: 'パスワード（確認のため再入力）を入力してください' }
+              presence: { message: 'パスワード（確認のため再入力）を入力してください' },
+              if: :require_password?
 
     # パスワード一致チェック
     validates :password,
-              confirmation: { message: 'パスワードと再入力パスワードが一致しません' }
+              confirmation: { message: 'パスワードと再入力パスワードが一致しません' },
+              if: :require_password?
+  end
+
+  # デフォルトはパスワード必須（WEB版会員登録用）
+  # API版などで任意にする場合は、このメソッドをオーバーライドする
+  def require_password?
+    true
   end
 
   private

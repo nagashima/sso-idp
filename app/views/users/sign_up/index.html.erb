@@ -608,8 +608,10 @@ document.getElementById('email-btn').addEventListener('click', async () => {
       signupToken = data.token;
       showStep('email-sent-step');
     } else {
-      const errorMsg = data.errors?.email?.[0] || data.errors?.base?.[0] || 'エラーが発生しました';
-      showError(errorMsg);
+      // エラーの最初の値を取得（どのフィールドでも対応）
+      const errors = data.errors || {};
+      const firstError = Object.values(errors)[0]?.[0] || 'エラーが発生しました';
+      showError(firstError);
     }
   } catch (error) {
     showError('通信エラーが発生しました');
@@ -640,8 +642,10 @@ document.getElementById('password-btn').addEventListener('click', async () => {
     if (response.ok) {
       showStep('profile-step');
     } else {
-      const errorMsg = data.errors?.password?.[0] || data.errors?.password_confirmation?.[0] || data.errors?.base?.[0] || 'エラーが発生しました';
-      showError(errorMsg);
+      // エラーの最初の値を取得（どのフィールドでも対応）
+      const errors = data.errors || {};
+      const firstError = Object.values(errors)[0]?.[0] || 'エラーが発生しました';
+      showError(firstError);
     }
   } catch (error) {
     showError('通信エラーが発生しました');
@@ -1189,8 +1193,10 @@ document.getElementById('profile-btn').addEventListener('click', async () => {
 
       showStep('confirm-step');
     } else {
-      const errorMsg = data.errors?.last_name?.[0] || data.errors?.base?.[0] || 'エラーが発生しました';
-      showError(errorMsg);
+      // エラーの最初の値を取得（どのフィールドでも対応）
+      const errors = data.errors || {};
+      const firstError = Object.values(errors)[0]?.[0] || 'エラーが発生しました';
+      showError(firstError);
     }
   } catch (error) {
     showError('通信エラーが発生しました');
