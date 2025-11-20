@@ -55,9 +55,6 @@ Rails.application.configure do
     config.ssl_options = { redirect: false }
     config.hosts = [host_name, "host.docker.internal"]
 
-    # HTTPS環境でのSecure Cookie設定
-    config.session_store :cookie_store, key: '_idp_session', secure: true, httponly: true
-
     # ポート番号が443の場合は省略、それ以外は明示
     if host_port == 443
       Rails.application.routes.default_url_options = {

@@ -89,16 +89,6 @@ class Sso::ConsentController < ApplicationController
       return true
     end
 
-    # 2b. 信頼できるクライアント（環境変数, 下位互換）
-    if defined?(JwtConfig::TRUSTED_CLIENT_IDS) && JwtConfig::TRUSTED_CLIENT_IDS.present?
-      trusted_clients = JwtConfig::TRUSTED_CLIENT_IDS.split(',').map(&:strip).reject(&:empty?)
-      client_id = consent_request.dig('client', 'client_id')
-      if trusted_clients.include?(client_id)
-        Rails.logger.info "Auto-consent due to TRUSTED_CLIENT_IDS: #{client_id}"
-        return true
-      end
-    end
-
     # 3. 基本スコープのみの場合（テスト用: emailを除外）
     requested_scopes = consent_request['requested_scope'] || []
     basic_scopes = ['openid', 'profile']  # emailを除外

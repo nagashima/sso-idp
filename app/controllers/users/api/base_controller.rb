@@ -23,14 +23,7 @@ module Users
 
       # JWT実装: 一時トークン生成（2FA用）
       def generate_temp_token(user)
-        JWT.encode(
-          {
-            user_id: user.id,
-            exp: 10.minutes.from_now.to_i,
-            purpose: 'temp_auth'
-          },
-          Rails.application.secret_key_base
-        )
+        AuthenticationTokenService.generate_temp_token(user)
       end
 
       # JWT実装: 一時トークン検証
@@ -51,28 +44,12 @@ module Users
 
       # JWT実装: 認証トークン生成（ログイン完了時）
       def generate_auth_token(user)
-        JWT.encode(
-          {
-            user_id: user.id,
-            exp: JwtConfig::TOKEN_EXPIRATION_MINUTES.minutes.from_now.to_i
-          },
-          Rails.application.secret_key_base
-        )
+        AuthenticationTokenService.generate_auth_token(user)
       end
 
       # Cookie設定: 認証トークン
       def set_auth_cookie(auth_token)
-        secure_flag = Rails.env.production? || ENV['HOST_PORT'] == '443'
-
-        cookie_options = {
-          value: auth_token,
-          expires: JwtConfig::TOKEN_EXPIRATION_MINUTES.minutes.from_now,
-          httponly: true,
-          secure: secure_flag,
-          same_site: :lax
-        }
-
-        cookies[:auth_token] = cookie_options
+        cookies[:auth_token] = AuthenticationTokenService.auth_cookie_options(auth_token, request)
       end
     end
   end
